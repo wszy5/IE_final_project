@@ -3,6 +3,7 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
+
 int main() {
 
     sf::RenderWindow window(sf::VideoMode(800, 600), "My window");
@@ -62,14 +63,9 @@ int main() {
     sprite7.setPosition(550,430);
 
 
-
-
     sf::Clock clock;
-
     // run the program as long as the window is open
     while (window.isOpen()) {
-
-
 
         sf::Time elapsed = clock.restart();
         float dt = elapsed.asSeconds();
@@ -95,12 +91,25 @@ int main() {
         }
         else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
             sprite2.move(-abs(x_speed)*dt,0);
+        }
 
+        if(sprite2.getPosition().x < 0.f){
+            sprite2.setPosition(0.f, sprite2.getPosition().y);
+        }
+        else if(sprite2.getPosition().y < 0.f){
+            sprite2.setPosition(sprite2.getPosition().x, 0.f);
+        }
+        else if(sprite2.getPosition().x + sprite2.getGlobalBounds().width > 800){
+
+            sprite2.setPosition(800-sprite2.getGlobalBounds().width, sprite2.getPosition().y);
+        }
+        else if(sprite2.getPosition().y + sprite2.getGlobalBounds().height > 600){
+
+            sprite2.setPosition(sprite2.getPosition().x,600-sprite2.getGlobalBounds().height);
         }
 
         // clear the window with black color
         window.clear(sf::Color::Black);
-
         // draw everything here...
         window.draw(sprite);//trawa
         window.draw(sprite3);//scianka
@@ -108,9 +117,7 @@ int main() {
         window.draw(sprite5);//scianka
         window.draw(sprite6);//scianka
         window.draw(sprite7);//scianka
-
         window.draw(sprite2);
-
         window.display();
     }
 
