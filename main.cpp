@@ -7,6 +7,7 @@
 int main() {
 
     sf::RenderWindow window(sf::VideoMode(800, 600), "My window");
+    window.setFramerateLimit(120);
 
     sf::Texture grass_t;
     if (!grass_t.loadFromFile("grass.png")) {
@@ -31,6 +32,7 @@ int main() {
 
     sf::Sprite sprite2;
     sprite2.setTexture(guy_t);
+
 
     sf::Sprite sprite3;
     sprite3.setTexture(wall_t);
@@ -62,7 +64,13 @@ int main() {
     wall_t.setRepeated(true);
     sprite7.setPosition(550,430);
 
+std::vector<sf::Sprite> walls = {sprite3, sprite4, sprite5, sprite6, sprite7};
 
+
+//collison
+sf::FloatRect nextPos;
+
+//const float gridSize = 50.f;
     sf::Clock clock;
     // run the program as long as the window is open
     while (window.isOpen()) {
@@ -71,6 +79,49 @@ int main() {
         float dt = elapsed.asSeconds();
         int x_speed = 100;
         int y_speed = 150;
+
+        for(auto &wall: walls){
+            sf::FloatRect playerBounds = sprite2.getGlobalBounds();
+            sf::FloatRect wallBounds = wall.getGlobalBounds();
+            nextPos = playerBounds;
+            nextPos.left += x_speed;
+            nextPos.top += y_speed;
+
+            if(wallBounds.intersects(nextPos)){
+                std::cout<<"collision detected"<<"\n";
+                if(playerBounds.top < wallBounds.top
+                   && playerBounds.top + playerBounds.height < wallBounds.top + wallBounds.height
+                   && playerBounds.left < wallBounds.left + wallBounds.width
+                   && playerBounds.left + playerBounds.width > wallBounds.left){
+                    std::cout<<"bcolllision";
+                    sprite2.setPosition(playerBounds.left,wallBounds.top-playerBounds.height);
+                }
+                else if( playerBounds.top > wallBounds.top
+                        && playerBounds.top + playerBounds.height > wallBounds.top + wallBounds.height
+                        && playerBounds.left < wallBounds.left + wallBounds.width
+                        && playerBounds.left + playerBounds.width > wallBounds.left){
+                    std::cout<<"tcolllision";
+                    sprite2.setPosition(playerBounds.left,wallBounds.top-playerBounds.height);
+                }
+                else if( playerBounds.left < wallBounds.left
+                        && playerBounds.left + playerBounds.width < wallBounds.left + wallBounds.width
+                        && playerBounds.top < wallBounds.top + wallBounds.height
+                        && playerBounds.top + playerBounds.height > wallBounds.top){
+                    std::cout<<"rcolllision";
+                    sprite2.setPosition(wallBounds.left - playerBounds.width, playerBounds.top);
+                }
+                else if( playerBounds.left > wallBounds.left
+                        && playerBounds.left + playerBounds.width > wallBounds.left + wallBounds.width
+                        && playerBounds.top < wallBounds.top + wallBounds.height
+                        && playerBounds.top + playerBounds.height > wallBounds.top){
+                    std::cout<<"lcolllision";
+                    sprite2.setPosition(wallBounds.left - wallBounds.width, playerBounds.top);
+                }
+            }
+}
+
+
+
 
 
  sf::Event event;
@@ -93,6 +144,7 @@ int main() {
             sprite2.move(-abs(x_speed)*dt,0);
         }
 
+
         if(sprite2.getPosition().x < 0.f){
             sprite2.setPosition(0.f, sprite2.getPosition().y);
         }
@@ -112,11 +164,11 @@ int main() {
         window.clear(sf::Color::Black);
         // draw everything here...
         window.draw(sprite);//trawa
-        window.draw(sprite3);//scianka
-        window.draw(sprite4);//scianka
-        window.draw(sprite5);//scianka
-        window.draw(sprite6);//scianka
-        window.draw(sprite7);//scianka
+        for(auto &wall: walls){
+            window.draw(wall);
+        }
+
+
         window.draw(sprite2);
         window.display();
     }
