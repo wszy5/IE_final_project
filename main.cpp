@@ -7,7 +7,7 @@
 class Object3d : sf::VertexArray
  {
   public:
-    Object3d(sf::PrimitiveType type_, std::size_t vertexCount_ = 0) : sf::VertexArray(type_, vertexCount_)
+    Object3d(sf::PrimitiveType type_, std::size_t vertexCount_ = 0) : sf::VertexArray(type_, vertexCount_) // constructor
      {
       type = type_;
       vertexCount = vertexCount_;
@@ -35,7 +35,7 @@ class Object3d : sf::VertexArray
      {
       for(auto &point : Points)
        {
-        point.x = origin.x+((point.x-origin.x)*cos(rv*time))+((origin.y-point.z)*sin(rv*time));
+        point.x = origin.x+((point.x-origin.x)*cos(rv*time))+((origin.y-point.z)*sin(rv*time)); // Formulas i stole from the internet
         point.z = origin.y+((point.z-origin.y)*cos(rv*time))+((point.x-origin.x)*sin(rv*time));
        }
      }
@@ -45,7 +45,7 @@ class Object3d : sf::VertexArray
       sf::VertexArray array(type, vertexCount);
       for (int i = 0; i < vertexCount; ++i)
        {
-        array[i].position = sf::Vector2f(Points[i].x, Points[i].y);
+        array[i].position = sf::Vector2f(Points[i].x, Points[i].y); // this is just that code retrofited into a class function
        }
       return array;
      };
@@ -59,9 +59,9 @@ class Object3d : sf::VertexArray
  };
 
 
-sf::Vector2f render(sf::Vector3f vector){
-    return(sf::Vector2f(vector.x, vector.y));
-}
+//sf::Vector2f render(sf::Vector3f vector){
+//    return(sf::Vector2f(vector.x, vector.y));
+//}
 
 
 int main()
@@ -76,10 +76,9 @@ int main()
     sf::CircleShape dot(10);
     dot.setPosition (600, 300);
 
-//    coobe[3] = sf::Vector3f(100, 100, 100);
-    coobe.set_position(0, sf::Vector3f(100, 100, 100));
-    coobe.set_position(1, sf::Vector3f(500, 100, 100));
-    coobe.set_position(2, sf::Vector3f(530, 70, 500));
+    coobe.set_position(0, sf::Vector3f(100, 100, 100)); // Because of how Primitive types work in SFML we have to initialise
+    coobe.set_position(1, sf::Vector3f(500, 100, 100)); // a couple more points than is actually present in the structure
+    coobe.set_position(2, sf::Vector3f(530, 70, 500)); // We should try to find a way to fix/automate/streamline this
     coobe.set_position(3, sf::Vector3f(70, 70, 500));
     coobe.set_position(4, sf::Vector3f(100, 100, 100));
     coobe.set_position(5, sf::Vector3f(100, 500, 100));
