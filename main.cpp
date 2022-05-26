@@ -2,6 +2,7 @@
 #include <SFML/Window.hpp>
 #include <iostream>
 #include <vector>
+#include <cmath>
 
 class Object3d : sf::VertexArray
  {
@@ -30,6 +31,15 @@ class Object3d : sf::VertexArray
       std::cout<<Points[index].x<<std::endl;
      };
 
+    void rotate(sf::Vector2f origin, float rv = M_PI/4, float time =0)
+     {
+      for(auto &point : Points)
+       {
+        point.x = origin.x+((point.x-origin.x)*cos(rv*time))+((origin.y-point.z)*sin(rv*time));
+        point.z = origin.y+((point.z-origin.y)*cos(rv*time))+((point.x-origin.x)*sin(rv*time));
+       }
+     }
+
     sf::VertexArray render()
      {
       sf::VertexArray array(type, vertexCount);
@@ -39,6 +49,8 @@ class Object3d : sf::VertexArray
        }
       return array;
      };
+
+
 
   private:
    std::size_t vertexCount;
@@ -55,25 +67,31 @@ sf::Vector2f render(sf::Vector3f vector){
 int main()
 {
     sf::RenderWindow window( sf::VideoMode( 800, 600 ), "SFML WORK!" );
+    sf::Clock clock;
 
     Object3d coobe(sf::LineStrip,16);
+
+    sf::Vector2f origin (400,300);
+
+    sf::CircleShape dot(10);
+    dot.setPosition (600, 300);
 
 //    coobe[3] = sf::Vector3f(100, 100, 100);
     coobe.set_position(0, sf::Vector3f(100, 100, 100));
     coobe.set_position(1, sf::Vector3f(500, 100, 100));
-    coobe.set_position(2, sf::Vector3f(510, 90, 500));
-    coobe.set_position(3, sf::Vector3f(90, 90, 500));
+    coobe.set_position(2, sf::Vector3f(530, 70, 500));
+    coobe.set_position(3, sf::Vector3f(70, 70, 500));
     coobe.set_position(4, sf::Vector3f(100, 100, 100));
     coobe.set_position(5, sf::Vector3f(100, 500, 100));
     coobe.set_position(6, sf::Vector3f(500, 500, 100));
     coobe.set_position(7, sf::Vector3f(500, 100, 100));
     coobe.set_position(8, sf::Vector3f(500, 500, 100));
-    coobe.set_position(9, sf::Vector3f(510, 510, 500));
-    coobe.set_position(10, sf::Vector3f(510, 90, 500));
-    coobe.set_position(11, sf::Vector3f(510, 510, 500));
-    coobe.set_position(12, sf::Vector3f(90, 510, 500));
-    coobe.set_position(13, sf::Vector3f(90, 90, 500));
-    coobe.set_position(14, sf::Vector3f(90, 510, 500));
+    coobe.set_position(9, sf::Vector3f(530, 530, 500));
+    coobe.set_position(10, sf::Vector3f(530, 70, 500));
+    coobe.set_position(11, sf::Vector3f(530, 530, 500));
+    coobe.set_position(12, sf::Vector3f(70, 530, 500));
+    coobe.set_position(13, sf::Vector3f(70, 70, 500));
+    coobe.set_position(14, sf::Vector3f(70, 530, 500));
     coobe.set_position(15, sf::Vector3f(100, 500, 100));
 
 
@@ -114,6 +132,8 @@ int main()
 
     while ( window.isOpen( ) )
     {
+        sf::Time elapsed = clock.restart();
+
         sf::Event event;
 
         while ( window.pollEvent( event ) )
@@ -127,6 +147,9 @@ int main()
 
             }
         }
+
+
+        coobe.rotate(sf::Vector2f(300,300),M_PI/4,elapsed.asSeconds());
 
         window.clear( );
 
