@@ -32,7 +32,7 @@ class Object3d : sf::VertexArray
      };
 
 
-    void rotate(sf::Vector3f origin, float rv=M_PI/4, float time=0, int plane=1) // 1 = xy plane | 2 = yz plane | 3= xz plane
+    void rotate(sf::Vector3f origin, float rv=M_PI/4, float time=1, int plane=1) // 1 = xy plane | 2 = yz plane | 3= xz plane
      {
        float orx, ory, px, py;
 
@@ -141,6 +141,9 @@ int main()
     sf::CircleShape dot(10);
     dot.setPosition (600, 300);
 
+    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,1);
+    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,2);
+
 //    coobe.set_position(0, sf::Vector3f(100, 100, 100)); // Because of how Primitive types work in SFML we have to initialise
 //    coobe.set_position(1, sf::Vector3f(500, 100, 100)); // a couple more points than is actually present in the structure
 //    coobe.set_position(2, sf::Vector3f(530, 70, 500)); // We should try to find a way to fix/automate/streamline this
@@ -214,8 +217,8 @@ int main()
 
 
         coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,elapsed.asSeconds(),3);
-        coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,elapsed.asSeconds(),2);
-        coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,elapsed.asSeconds(),1);
+//        coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,elapsed.asSeconds(),2);
+//        coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,elapsed.asSeconds(),1);
 
         window.clear( );
 
