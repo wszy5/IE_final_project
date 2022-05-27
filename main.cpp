@@ -31,12 +31,52 @@ class Object3d : sf::VertexArray
       std::cout<<Points[index].x<<std::endl;
      };
 
-    void rotate(sf::Vector2f origin, float rv = M_PI/4, float time =0)
+
+    void rotate(sf::Vector3f origin, float rv=M_PI/4, float time=0, int plane=1) // 1 = xy plane | 2 = yz plane | 3= xz plane
      {
+       float orx, ory, px, py;
+
+
+      if(plane==1) // XY
+       {
+        orx = origin.x;
+        ory = origin.z;
+       }
+      else if(plane==2) // YZ
+       {
+        orx = origin.y;
+        ory = origin.z;
+       }
+      else if(plane==3) // XZ
+       {
+        orx = origin.x;
+        ory = origin.z;
+       }
+
       for(auto &point : Points)
        {
-        point.x = origin.x+((point.x-origin.x)*cos(rv*time))+((origin.y-point.z)*sin(rv*time)); // Formulas i stole from the internet
-        point.z = origin.y+((point.z-origin.y)*cos(rv*time))+((point.x-origin.x)*sin(rv*time));
+        if(plane==1) // XY
+         {
+          px = point.x;
+          py = point.y;
+          point.x = orx+((px-orx)*cos(rv*time))+((ory-py)*sin(rv*time)); // Formulas i stole from the internet
+          point.y = ory+((py-ory)*cos(rv*time))+((px-orx)*sin(rv*time));
+         }
+        else if(plane==2) // YZ
+         {
+          px = point.y;
+          py = point.z;
+          point.y = orx+((px-orx)*cos(rv*time))+((ory-py)*sin(rv*time)); // Formulas i stole from the internet
+          point.z = ory+((py-ory)*cos(rv*time))+((px-orx)*sin(rv*time));
+         }
+        else if(plane==3) // XZ
+         {
+          px = point.x;
+          py = point.z;
+          point.x = orx+((px-orx)*cos(rv*time))+((ory-py)*sin(rv*time)); // Formulas i stole from the internet
+          point.z = ory+((py-ory)*cos(rv*time))+((px-orx)*sin(rv*time));
+         }
+
        }
      }
 
@@ -50,6 +90,25 @@ class Object3d : sf::VertexArray
       return array;
      };
 
+    int cube(std::vector<sf::Vector3f> points)
+     {
+      set_position(0, points[0]);
+      set_position(1, points[1]);
+      set_position(2, points[2]);
+      set_position(3, points[3]);
+      set_position(4, points[0]);
+      set_position(5, points[4]);
+      set_position(6, points[5]);
+      set_position(7, points[1]);
+      set_position(8, points[5]);
+      set_position(9, points[6]);
+      set_position(10, points[2]);
+      set_position(11, points[6]);
+      set_position(12, points[7]);
+      set_position(13, points[3]);
+      set_position(14, points[7]);
+      set_position(15, points[4]);
+     }
 
 
   private:
@@ -57,6 +116,8 @@ class Object3d : sf::VertexArray
    sf::PrimitiveType type;
    std::vector<sf::Vector3f> Points;
  };
+
+
 
 
 //sf::Vector2f render(sf::Vector3f vector){
@@ -69,29 +130,33 @@ int main()
     sf::RenderWindow window( sf::VideoMode( 800, 600 ), "SFML WORK!" );
     sf::Clock clock;
 
+
     Object3d coobe(sf::LineStrip,16);
+    std::vector<sf::Vector3f> points {sf::Vector3f(200, 200, 200), sf::Vector3f(400, 200, 200), sf::Vector3f(400, 400, 200), sf::Vector3f(200, 400, 200),
+                                      sf::Vector3f(200, 200, 400), sf::Vector3f(400, 200, 400), sf::Vector3f(400, 400, 400), sf::Vector3f(200, 400, 400)};
+    coobe.cube(points);
 
     sf::Vector2f origin (400,300);
 
     sf::CircleShape dot(10);
     dot.setPosition (600, 300);
 
-    coobe.set_position(0, sf::Vector3f(100, 100, 100)); // Because of how Primitive types work in SFML we have to initialise
-    coobe.set_position(1, sf::Vector3f(500, 100, 100)); // a couple more points than is actually present in the structure
-    coobe.set_position(2, sf::Vector3f(530, 70, 500)); // We should try to find a way to fix/automate/streamline this
-    coobe.set_position(3, sf::Vector3f(70, 70, 500));
-    coobe.set_position(4, sf::Vector3f(100, 100, 100));
-    coobe.set_position(5, sf::Vector3f(100, 500, 100));
-    coobe.set_position(6, sf::Vector3f(500, 500, 100));
-    coobe.set_position(7, sf::Vector3f(500, 100, 100));
-    coobe.set_position(8, sf::Vector3f(500, 500, 100));
-    coobe.set_position(9, sf::Vector3f(530, 530, 500));
-    coobe.set_position(10, sf::Vector3f(530, 70, 500));
-    coobe.set_position(11, sf::Vector3f(530, 530, 500));
-    coobe.set_position(12, sf::Vector3f(70, 530, 500));
-    coobe.set_position(13, sf::Vector3f(70, 70, 500));
-    coobe.set_position(14, sf::Vector3f(70, 530, 500));
-    coobe.set_position(15, sf::Vector3f(100, 500, 100));
+//    coobe.set_position(0, sf::Vector3f(100, 100, 100)); // Because of how Primitive types work in SFML we have to initialise
+//    coobe.set_position(1, sf::Vector3f(500, 100, 100)); // a couple more points than is actually present in the structure
+//    coobe.set_position(2, sf::Vector3f(530, 70, 500)); // We should try to find a way to fix/automate/streamline this
+//    coobe.set_position(3, sf::Vector3f(70, 70, 500));
+//    coobe.set_position(4, sf::Vector3f(100, 100, 100));
+//    coobe.set_position(5, sf::Vector3f(100, 500, 100));
+//    coobe.set_position(6, sf::Vector3f(500, 500, 100));
+//    coobe.set_position(7, sf::Vector3f(500, 100, 100));
+//    coobe.set_position(8, sf::Vector3f(500, 500, 100));
+//    coobe.set_position(9, sf::Vector3f(530, 530, 500));
+//    coobe.set_position(10, sf::Vector3f(530, 70, 500));
+//    coobe.set_position(11, sf::Vector3f(530, 530, 500));
+//    coobe.set_position(12, sf::Vector3f(70, 530, 500));
+//    coobe.set_position(13, sf::Vector3f(70, 70, 500));
+//    coobe.set_position(14, sf::Vector3f(70, 530, 500));
+//    coobe.set_position(15, sf::Vector3f(100, 500, 100));
 
 
 
@@ -148,7 +213,9 @@ int main()
         }
 
 
-        coobe.rotate(sf::Vector2f(300,300),M_PI/4,elapsed.asSeconds());
+        coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,elapsed.asSeconds(),3);
+        coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,elapsed.asSeconds(),2);
+        coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,elapsed.asSeconds(),1);
 
         window.clear( );
 
