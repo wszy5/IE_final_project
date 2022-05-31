@@ -4,6 +4,160 @@
 #include <vector>
 #include <cmath>
 
+float distance(sf::Vector2f P, float angle, sf::Vector2f _0)
+ {
+    return /*std::abs(*/(cos(angle*M_PI/180)*(P.x-_0.x))-(sin(angle*M_PI/180)*(_0.y-P.y))/*)*/;
+ };
+
+float perspective(sf::Vector2f point, sf::Vector2f cam, float angle, float fov)
+ {
+  if(distance(point,angle+90,cam)>0)
+   {
+    return(10*distance(cam,angle,point)/distance(point,angle+90,cam)*fov);
+   }
+  else
+   {
+    return 2137; // ooo panieeeeee
+   };
+
+ };
+
+class Object2d
+ {
+  public:
+    Object2d(sf::Vector2f position_, float angle_, float fov_)
+     {
+      position = position_;
+      angle = angle_;
+      fov = fov_;
+     };
+    sf::Vector2f pos2()
+     {
+      return sf::Vector2f((position.x-fov*sin(angle*M_PI/180)),(fov*cos(angle*M_PI/180)+position.y));
+     };
+
+    sf::Vector2f pos()
+     {
+      return position;
+     };
+
+    float ang()
+     {
+      return angle;
+     };
+
+    float gfov()
+     {
+      return fov;
+     };
+
+    void move(const sf::Time &elapsed)
+     {
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+       {
+        position.y -= 100*elapsed.asSeconds();
+       }
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+       {
+        position.y += 100*elapsed.asSeconds();
+       }
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+       {
+        position.x += 100*elapsed.asSeconds();
+       }
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+       {
+        position.x -= 100*elapsed.asSeconds();
+       }
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+       {
+        angle += 90*elapsed.asSeconds();
+       }
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
+       {
+        angle -= 90*elapsed.asSeconds();
+       }
+     }
+
+  private:
+   sf::Vector2f position;
+   float angle;
+   float fov;
+ };
+
+class Camera
+ {
+  public:
+    Camera(sf::Vector3f position_, sf::Vector2f turn_, float fov_)
+     {
+      position = position_;
+      turn = turn_;
+      fov = fov_;
+     };
+
+    sf::Vector3f get_pos()
+     {
+      return position;
+     };
+    sf::Vector2f get_tur()
+     {
+      return turn;
+     };
+    float get_fov()
+     {
+      return fov;
+     };
+
+    void move(const sf::Time &elapsed)
+     {
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+       {
+        position.z += 100*elapsed.asSeconds();
+       }
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+       {
+        position.z -= 100*elapsed.asSeconds();
+       }
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+       {
+        position.x += 100*elapsed.asSeconds();
+       }
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+       {
+        position.x -= 100*elapsed.asSeconds();
+       }
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+       {
+        position.y -= 100*elapsed.asSeconds();
+       }
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
+       {
+        position.y += 100*elapsed.asSeconds();
+       }
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::O))
+       {
+        fov += 50*elapsed.asSeconds();
+       }
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::P))
+       {
+        fov -= 50*elapsed.asSeconds();
+       }
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
+       {
+        turn.x += 50*elapsed.asSeconds();
+       }
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+       {
+        turn.x -= 50*elapsed.asSeconds();
+       }
+     }
+
+  private:
+   sf::Vector3f position;
+   sf::Vector2f turn;
+   float fov;
+ };
+
 class Object3d : sf::VertexArray
  {
   public:
@@ -16,10 +170,6 @@ class Object3d : sf::VertexArray
          Points.push_back(sf::Vector3f(0,0,0));
         }
      }
-//    Object3d() : sf::VertexArray(){};
-
-//    sf::Vector3f& operator [](std::size_t index);
-//    const sf::Vector3f& operator [](std::size_t index) const;
 
     void set_position(int index, sf::Vector3f position)
      {
@@ -90,6 +240,23 @@ class Object3d : sf::VertexArray
       return array;
      };
 
+
+
+    sf::VertexArray p_render(Camera cam1, sf::Vector2u window) // p for perspective
+     {
+      sf::VertexArray array(type, vertexCount);
+      float x,y;
+      for (int i = 0; i < vertexCount; ++i)
+       {
+        x = perspective(sf::Vector2f(Points[i].x, Points[i].z), sf::Vector2f(cam1.get_pos().x, cam1.get_pos().z), cam1.get_tur().x, cam1.get_fov());
+        y = perspective(sf::Vector2f(Points[i].y, Points[i].z), sf::Vector2f(cam1.get_pos().y, cam1.get_pos().z), cam1.get_tur().y, cam1.get_fov());
+        array[i].position = sf::Vector2f(window.x/2-x*5, window.x/2-y*5);
+       }
+      return array;
+     };
+
+
+
     int cube(std::vector<sf::Vector3f> points)
      {
       set_position(0, points[0]);
@@ -118,18 +285,10 @@ class Object3d : sf::VertexArray
  };
 
 
-
-
-//sf::Vector2f render(sf::Vector3f vector){
-//    return(sf::Vector2f(vector.x, vector.y));
-//}
-
-
 int main()
 {
     sf::RenderWindow window( sf::VideoMode( 800, 600 ), "SFML WORK!" );
     sf::Clock clock;
-
 
     Object3d coobe(sf::LineStrip,16);
     std::vector<sf::Vector3f> points {sf::Vector3f(200, 200, 200), sf::Vector3f(400, 200, 200), sf::Vector3f(400, 400, 200), sf::Vector3f(200, 400, 200),
@@ -138,72 +297,49 @@ int main()
 
     sf::Vector2f origin (400,300);
 
-    sf::CircleShape dot(10);
-    dot.setPosition (600, 300);
+    sf::VertexArray graph(sf::LineStrip, 3);
+    graph[0].position = sf::Vector2f(100,100);
+    graph[1].position = sf::Vector2f(100,500);
+    graph[2].position = sf::Vector2f(700,500);
 
-    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,1);
-    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,2);
+//    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,1);
+//    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,2);
 
-//    coobe.set_position(0, sf::Vector3f(100, 100, 100)); // Because of how Primitive types work in SFML we have to initialise
-//    coobe.set_position(1, sf::Vector3f(500, 100, 100)); // a couple more points than is actually present in the structure
-//    coobe.set_position(2, sf::Vector3f(530, 70, 500)); // We should try to find a way to fix/automate/streamline this
-//    coobe.set_position(3, sf::Vector3f(70, 70, 500));
-//    coobe.set_position(4, sf::Vector3f(100, 100, 100));
-//    coobe.set_position(5, sf::Vector3f(100, 500, 100));
-//    coobe.set_position(6, sf::Vector3f(500, 500, 100));
-//    coobe.set_position(7, sf::Vector3f(500, 100, 100));
-//    coobe.set_position(8, sf::Vector3f(500, 500, 100));
-//    coobe.set_position(9, sf::Vector3f(530, 530, 500));
-//    coobe.set_position(10, sf::Vector3f(530, 70, 500));
-//    coobe.set_position(11, sf::Vector3f(530, 530, 500));
-//    coobe.set_position(12, sf::Vector3f(70, 530, 500));
-//    coobe.set_position(13, sf::Vector3f(70, 70, 500));
-//    coobe.set_position(14, sf::Vector3f(70, 530, 500));
-//    coobe.set_position(15, sf::Vector3f(100, 500, 100));
+    Camera cam01(sf::Vector3f(300,300,-500),sf::Vector2f(0,0), 30);
 
-
-
-//    sf::Vertex point;
-
-//    point.position = sf::Vector2f(100, 100);
-//    point.color = sf::Color::Red;
-
-//    sf::VertexArray line(sf::Lines, 2);
-
-//    line[0].position = sf::Vector2f(150, 150);
-//    line[0].color = sf::Color::Blue;
-//    line[1].position = sf::Vector2f(180, 180);
-//    line[1].color = sf::Color::Yellow;
-
-//   line[1] = point;
-
-//   sf::VertexArray tri(sf::Triangles, 3);
-
-//   tri[0].position = sf::Vector2f(222, 224);
-//   tri[0].color = sf::Color::Blue;
-//   tri[1].position = sf::Vector2f(289, 111);
-//   tri[1].color = sf::Color::Red;
-//   tri[2].position = sf::Vector2f(400, 299);
-//   tri[2].color = sf::Color::Green;
-
-
-//    sf::RectangleShape line;
-//    line.setSize(sf::Vector2f(20, 300));
-//    sf::Vertex line2[] =
-//    {
-//        sf::Vertex(sf::Vector2f(50, 10)),
-//        sf::Vertex(sf::Vector2f(200, 100))
-//    };
-    //test
+//    Object2d test1(sf::Vector2f(200,200), 0, 50);
+//    sf::CircleShape dot(5);
+//    sf::CircleShape dot2(5);
+//    sf::CircleShape dot3(5);
+//    dot2.setFillColor(sf::Color::Red);
+//    dot3.setFillColor(sf::Color::Red);
+//    dot2.setPosition(462, 281);
+//    sf::VertexArray ray(sf::Lines, 2);
+//    ray[0].color = sf::Color::Green;
+//    ray[1].color = sf::Color::Green;
 
 
     while ( window.isOpen( ) )
     {
         sf::Time elapsed = clock.restart();
-
         sf::Event event;
 
-        while ( window.pollEvent( event ) )
+//        test1.move(elapsed);
+//        dot.setPosition(test1.pos().x-dot.getRadius(), test1.pos().y-dot.getRadius());
+//        ray[0].position = sf::Vector2f(test1.pos());
+//        ray[1].position = sf::Vector2f(test1.pos2());
+
+//        float yee = perspective(dot2.getPosition(), test1.pos(), test1.ang(), test1.gfov());
+
+//        dot3.setPosition(400+yee, 550);
+
+//        std::cout<<yee<<" : "<<test1.ang()<<std::endl;
+
+        cam01.move(elapsed);
+
+        std::cout<<"X: "<<cam01.get_pos().x<<" Y: "<<cam01.get_pos().y<<" Z: "<<cam01.get_pos().z<<" Turn: "<<cam01.get_tur().x<<std::endl;
+
+        while( window.pollEvent( event ) )
         {
             switch (event.type)
             {
@@ -216,14 +352,17 @@ int main()
         }
 
 
-        coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,elapsed.asSeconds(),3);
-//        coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,elapsed.asSeconds(),2);
-//        coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,elapsed.asSeconds(),1);
+//        coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,elapsed.asSeconds(),3);
 
         window.clear( );
 
-        window.draw(coobe.render());
-//        window.draw(tri);
+//        window.draw(coobe.render());
+        window.draw(coobe.p_render(cam01, window.getSize()));
+//        window.draw(graph);
+//        window.draw(dot);
+//        window.draw(dot2);
+//        window.draw(dot3);
+//        window.draw(ray);
 
         window.display( );
     }
