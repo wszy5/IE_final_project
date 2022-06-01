@@ -259,7 +259,6 @@ class Object3d : sf::VertexArray
     sf::VertexArray p_render(Camera cam1, sf::Vector2u window) // p for perspective
      {
       sf::VertexArray array(type, vertexCount);
-      float x,y,y_yz,y_yx;
       for (int i = 0; i < vertexCount; ++i)
        {
           array[i].position = perspective(Points[i],cam1.get_pos(),cam1.get_tur(),cam1.get_fov(),window);
@@ -270,7 +269,7 @@ class Object3d : sf::VertexArray
 
 
 
-    int cube(std::vector<sf::Vector3f> points)
+    void cube(std::vector<sf::Vector3f> points)
      {
       set_position(0, points[0]);
       set_position(1, points[1]);
@@ -290,7 +289,6 @@ class Object3d : sf::VertexArray
       set_position(15, points[4]);
      }
 
-
   private:
    std::size_t vertexCount;
    sf::PrimitiveType type;
@@ -298,6 +296,54 @@ class Object3d : sf::VertexArray
    std::vector<sf::Vector3f> Points;
  };
 
+std::vector<Object3d> construct_panel(sf::Vector2f point1, sf::Vector2f point2, sf::Vector2f height, int type)
+ {
+  std::vector<Object3d> panel;
+  Object3d fill(sf::Quads, 4, sf::Color::Blue);
+  fill.set_position(0, sf::Vector3f(point1.x,height.y,point1.y));
+  fill.set_position(1, sf::Vector3f(point2.x,height.y,point2.y));
+  fill.set_position(2, sf::Vector3f(point2.x,height.x,point2.y));
+  fill.set_position(3, sf::Vector3f(point1.x,height.x,point1.y));
+  panel.emplace_back(fill);
+  if(type == 1)
+   {
+    Object3d border(sf::LineStrip, 5);
+    border.set_position(0, sf::Vector3f(point1.x,height.y,point1.y));
+    border.set_position(1, sf::Vector3f(point2.x,height.y,point2.y));
+    border.set_position(2, sf::Vector3f(point2.x,height.x,point2.y));
+    border.set_position(3, sf::Vector3f(point1.x,height.x,point1.y));
+    border.set_position(4, sf::Vector3f(point1.x,height.y,point1.y));
+    panel.emplace_back(border);
+   }
+  else if(type == 2)
+   {
+    Object3d border(sf::LineStrip, 4);
+    border.set_position(0, sf::Vector3f(point2.x,height.y,point2.y));
+    border.set_position(1, sf::Vector3f(point1.x,height.y,point1.y));
+    border.set_position(2, sf::Vector3f(point1.x,height.x,point1.y));
+    border.set_position(3, sf::Vector3f(point2.x,height.x,point2.y));
+    panel.emplace_back(border);
+   }
+  else if(type == 3)
+   {
+    Object3d border(sf::LineStrip, 4);
+    border.set_position(0, sf::Vector3f(point1.x,height.y,point1.y));
+    border.set_position(1, sf::Vector3f(point2.x,height.y,point2.y));
+    border.set_position(2, sf::Vector3f(point2.x,height.x,point2.y));
+    border.set_position(3, sf::Vector3f(point1.x,height.x,point1.y));
+    panel.emplace_back(border);
+   }
+  else if(type == 4)
+   {
+    Object3d border(sf::Lines, 4);
+    border.set_position(0, sf::Vector3f(point1.x,height.y,point1.y));
+    border.set_position(1, sf::Vector3f(point2.x,height.y,point2.y));
+    border.set_position(2, sf::Vector3f(point2.x,height.x,point2.y));
+    border.set_position(3, sf::Vector3f(point1.x,height.x,point1.y));
+    panel.emplace_back(border);
+   }
+  return panel;
+ };
 
 int main()
 {
@@ -311,7 +357,15 @@ int main()
 
     sf::Vector2f origin (400,300);
 
-
+    std::vector<std::vector<Object3d>> panels;
+    std::vector<Object3d> panel1 = construct_panel(sf::Vector2f(100,400),sf::Vector2f(200,400),sf::Vector2f(300,200),1);
+    panels.emplace_back(panel1);
+    std::vector<Object3d> panel2 = construct_panel(sf::Vector2f(300,400),sf::Vector2f(400,400),sf::Vector2f(300,200),2);
+    panels.emplace_back(panel2);
+    std::vector<Object3d> panel3 = construct_panel(sf::Vector2f(500,400),sf::Vector2f(600,400),sf::Vector2f(300,200),3);
+    panels.emplace_back(panel3);
+    std::vector<Object3d> panel4 = construct_panel(sf::Vector2f(700,400),sf::Vector2f(800,400),sf::Vector2f(300,200),4);
+    panels.emplace_back(panel4);
 
 //    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,1);
 //    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,2);
@@ -322,17 +376,7 @@ int main()
     Pole.set_position(0, sf::Vector3f(200,200,200));
     Pole.set_position(1, sf::Vector3f(200,210,200));
 
-    Object3d Panel(sf::LineStrip,5);
-    Panel.set_position(0, sf::Vector3f(300,300,300));
-    Panel.set_position(1, sf::Vector3f(400,300,300));
-    Panel.set_position(2, sf::Vector3f(400,200,300));
-    Panel.set_position(3, sf::Vector3f(300,200,300));
-    Panel.set_position(4, sf::Vector3f(300,300,300));
-    Object3d Panel0(sf::Quads,4,sf::Color::Black);
-    Panel0.set_position(0, sf::Vector3f(300,300,300));
-    Panel0.set_position(1, sf::Vector3f(400,300,300));
-    Panel0.set_position(2, sf::Vector3f(400,200,300));
-    Panel0.set_position(3, sf::Vector3f(300,200,300));
+
 
 //    sf::VertexArray graph(sf::LineStrip, 3);
 //    graph[0].position = sf::Vector2f(100,100);
@@ -383,13 +427,22 @@ int main()
         window.clear( );
 
 //        window.draw(coobe.render());
-        window.draw(coobe.p_render(cam01, window.getSize()));
+//        window.draw(coobe.p_render(cam01, window.getSize()));
 //        window.draw(graph);
 //        window.draw(dot);
 //        window.draw(ray);
 //        window.draw(Pole.p_render(cam01, window.getSize()));
 //        window.draw(Panel0.p_render(cam01, window.getSize()));
 //        window.draw(Panel.p_render(cam01, window.getSize()));
+        for(auto panel : panels)
+         {
+         for(auto part : panel)
+          {
+           window.draw(part.p_render(cam01, window.getSize()));
+          }
+          std::cout<<"ay ";
+         }
+        std::cout<<std::endl;
 
         window.display( );
     }
