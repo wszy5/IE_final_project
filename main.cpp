@@ -14,8 +14,8 @@ sf::Vector2f perspective(sf::Vector3f point, sf::Vector3f cam, float angle, floa
   float X,Y;
   if(distance(sf::Vector2f(point.x,point.z),angle+90,sf::Vector2f(cam.x,cam.z))>0)
    {
-    X=(window.x/2)+(10*distance(sf::Vector2f(cam.x,cam.z),angle,sf::Vector2f(point.x,point.z))/distance(sf::Vector2f(point.x,point.z),angle+90,sf::Vector2f(cam.x,cam.z))*fov); // K/M*fov
-    Y=(window.y/2)+(10*(cam.y-point.y)/distance(sf::Vector2f(point.x,point.z),angle+90,sf::Vector2f(cam.x,cam.z))*fov);
+    X=(window.x/2)-(10*distance(sf::Vector2f(cam.x,cam.z),angle,sf::Vector2f(point.x,point.z))/distance(sf::Vector2f(point.x,point.z),angle+90,sf::Vector2f(cam.x,cam.z))*fov); // K/M*fov
+    Y=(window.y/2)-(10*(cam.y-point.y)/distance(sf::Vector2f(point.x,point.z),angle+90,sf::Vector2f(cam.x,cam.z))*fov);
    }
   else
    {
@@ -25,7 +25,7 @@ sf::Vector2f perspective(sf::Vector3f point, sf::Vector3f cam, float angle, floa
   return(sf::Vector2f(X,Y));
  };
 
-class Object2d
+class Object2d //debug feature to deal with pesky stuff like motion
  {
   public:
     Object2d(sf::Vector2f position_, float angle_, float fov_)
@@ -36,7 +36,7 @@ class Object2d
      };
     sf::Vector2f pos2()
      {
-      return sf::Vector2f((position.x-fov*sin(angle*M_PI/180)),(fov*cos(angle*M_PI/180)+position.y));
+      return sf::Vector2f((position.x-fov*sin(angle*M_PI/180)),(position.y-fov*cos(angle*M_PI/180)));
      };
 
     sf::Vector2f pos()
@@ -56,9 +56,12 @@ class Object2d
 
     void move(const sf::Time &elapsed)
      {
+      std::cout<<"Angle: "<<angle<<" cos(angle): "<<cos(angle*M_PI/180)<<" sin(angle): "<<sin(angle*M_PI/180)<<std::endl;
+
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
        {
-        position.y -= 100*elapsed.asSeconds();
+        position.y -= 100*elapsed.asSeconds()*cos(angle*M_PI/180);
+        position.x -= 100*elapsed.asSeconds()*sin(angle*M_PI/180);
        }
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
        {
@@ -91,7 +94,7 @@ class Object2d
 class Camera
  {
   public:
-    Camera(sf::Vector3f position_, sf::Vector2f turn_, float fov_)
+    Camera(sf::Vector3f position_, float turn_, float fov_)
      {
       position = position_;
       turn = turn_;
@@ -102,7 +105,7 @@ class Camera
      {
       return position;
      };
-    sf::Vector2f get_tur()
+    float get_tur()
      {
       return turn;
      };
@@ -113,21 +116,28 @@ class Camera
 
     void move(const sf::Time &elapsed)
      {
+
+      std::cout<<fov<<std::endl;
+
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
        {
-        position.z += 100*elapsed.asSeconds();
+        position.z += 100*elapsed.asSeconds()*cos(turn*M_PI/180);
+        position.x -= 100*elapsed.asSeconds()*sin(turn*M_PI/180);
        }
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
        {
-        position.z -= 100*elapsed.asSeconds();
+        position.z -= 100*elapsed.asSeconds()*cos(turn*M_PI/180);
+        position.x += 100*elapsed.asSeconds()*sin(turn*M_PI/180);
        }
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
        {
-        position.x += 100*elapsed.asSeconds();
+        position.z += 100*elapsed.asSeconds()*sin(turn*M_PI/180);
+        position.x += 100*elapsed.asSeconds()*cos(turn*M_PI/180);
        }
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
        {
-        position.x -= 100*elapsed.asSeconds();
+        position.z -= 100*elapsed.asSeconds()*sin(turn*M_PI/180);
+        position.x -= 100*elapsed.asSeconds()*cos(turn*M_PI/180);
        }
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
        {
@@ -147,17 +157,17 @@ class Camera
        }
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
        {
-        turn.x += 50*elapsed.asSeconds();
+        turn += 50*elapsed.asSeconds();
        }
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::E))
        {
-        turn.x -= 50*elapsed.asSeconds();
+        turn -= 50*elapsed.asSeconds();
        }
      }
 
   private:
    sf::Vector3f position;
-   sf::Vector2f turn;
+   float turn;
    float fov;
  };
 
@@ -251,12 +261,7 @@ class Object3d : sf::VertexArray
       float x,y,y_yz,y_yx;
       for (int i = 0; i < vertexCount; ++i)
        {
-//        x = perspective(Points[i], cam1.get_pos(), cam1.get_tur().x, cam1.get_fov());
-//        y_yz = perspective(sf::Vector2f(Points[i].y, Points[i].z), sf::Vector2f(cam1.get_pos().y, cam1.get_pos().z), cam1.get_tur().y, cam1.get_fov());
-//        y_yx = perspective(sf::Vector2f(Points[i].y, Points[i].x), sf::Vector2f(cam1.get_pos().y, cam1.get_pos().x), cam1.get_tur().y, cam1.get_fov());
-//        y = (cos(cam1.get_tur().x)*y_yz+sin(cam1.get_tur().x)*y_yx)/2;
-
-          array[i].position = perspective(Points[i],cam1.get_pos(),cam1.get_tur().x,cam1.get_fov(),window);
+          array[i].position = perspective(Points[i],cam1.get_pos(),cam1.get_tur(),cam1.get_fov(),window);
        }
       return array;
      };
@@ -303,23 +308,21 @@ int main()
 
     sf::Vector2f origin (400,300);
 
-    sf::VertexArray graph(sf::LineStrip, 3);
-    graph[0].position = sf::Vector2f(100,100);
-    graph[1].position = sf::Vector2f(100,500);
-    graph[2].position = sf::Vector2f(700,500);
+
 
 //    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,1);
 //    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,2);
 
-    Camera cam01(sf::Vector3f(300,300,-500),sf::Vector2f(0,0), 30);
+    Camera cam01(sf::Vector3f(300,300,-500),0, 30);
 
+
+
+//    sf::VertexArray graph(sf::LineStrip, 3);
+//    graph[0].position = sf::Vector2f(100,100);
+//    graph[1].position = sf::Vector2f(100,500);
+//    graph[2].position = sf::Vector2f(700,500);
 //    Object2d test1(sf::Vector2f(200,200), 0, 50);
 //    sf::CircleShape dot(5);
-//    sf::CircleShape dot2(5);
-//    sf::CircleShape dot3(5);
-//    dot2.setFillColor(sf::Color::Red);
-//    dot3.setFillColor(sf::Color::Red);
-//    dot2.setPosition(462, 281);
 //    sf::VertexArray ray(sf::Lines, 2);
 //    ray[0].color = sf::Color::Green;
 //    ray[1].color = sf::Color::Green;
@@ -343,7 +346,7 @@ int main()
 
         cam01.move(elapsed);
 
-        std::cout<<"X: "<<cam01.get_pos().x<<" Y: "<<cam01.get_pos().y<<" Z: "<<cam01.get_pos().z<<" Turn: "<<cam01.get_tur().x<<std::endl;
+//        std::cout<<"X: "<<cam01.get_pos().x<<" Y: "<<cam01.get_pos().y<<" Z: "<<cam01.get_pos().z<<" Turn: "<<cam01.get_tur()<<std::endl;
 
         while( window.pollEvent( event ) )
         {
@@ -366,8 +369,6 @@ int main()
         window.draw(coobe.p_render(cam01, window.getSize()));
 //        window.draw(graph);
 //        window.draw(dot);
-//        window.draw(dot2);
-//        window.draw(dot3);
 //        window.draw(ray);
 
         window.display( );
