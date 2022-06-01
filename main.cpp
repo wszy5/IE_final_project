@@ -9,17 +9,20 @@ float distance(sf::Vector2f P, float angle, sf::Vector2f _0)
     return /*std::abs(*/(cos(angle*M_PI/180)*(P.x-_0.x))-(sin(angle*M_PI/180)*(_0.y-P.y))/*)*/;
  };
 
-float perspective(sf::Vector2f point, sf::Vector2f cam, float angle, float fov)
+sf::Vector2f perspective(sf::Vector3f point, sf::Vector3f cam, float angle, float fov, sf::Vector2u window)
  {
-  if(distance(point,angle+90,cam)>0)
+  float X,Y;
+  if(distance(sf::Vector2f(point.x,point.z),angle+90,sf::Vector2f(cam.x,cam.z))>0)
    {
-    return(10*distance(cam,angle,point)/distance(point,angle+90,cam)*fov);
+    X=(window.x/2)+(10*distance(sf::Vector2f(cam.x,cam.z),angle,sf::Vector2f(point.x,point.z))/distance(sf::Vector2f(point.x,point.z),angle+90,sf::Vector2f(cam.x,cam.z))*fov); // K/M*fov
+    Y=(window.y/2)+(10*(cam.y-point.y)/distance(sf::Vector2f(point.x,point.z),angle+90,sf::Vector2f(cam.x,cam.z))*fov);
    }
   else
    {
-    return 2137; // ooo panieeeeee
+    X=2137; // ooo panieeeeee
+    Y=2137; // to ty na mnie spojrzałeśśśś
    };
-
+  return(sf::Vector2f(X,Y));
  };
 
 class Object2d
@@ -245,12 +248,15 @@ class Object3d : sf::VertexArray
     sf::VertexArray p_render(Camera cam1, sf::Vector2u window) // p for perspective
      {
       sf::VertexArray array(type, vertexCount);
-      float x,y;
+      float x,y,y_yz,y_yx;
       for (int i = 0; i < vertexCount; ++i)
        {
-        x = perspective(sf::Vector2f(Points[i].x, Points[i].z), sf::Vector2f(cam1.get_pos().x, cam1.get_pos().z), cam1.get_tur().x, cam1.get_fov());
-        y = perspective(sf::Vector2f(Points[i].y, Points[i].z), sf::Vector2f(cam1.get_pos().y, cam1.get_pos().z), cam1.get_tur().y, cam1.get_fov());
-        array[i].position = sf::Vector2f(window.x/2-x*5, window.x/2-y*5);
+//        x = perspective(Points[i], cam1.get_pos(), cam1.get_tur().x, cam1.get_fov());
+//        y_yz = perspective(sf::Vector2f(Points[i].y, Points[i].z), sf::Vector2f(cam1.get_pos().y, cam1.get_pos().z), cam1.get_tur().y, cam1.get_fov());
+//        y_yx = perspective(sf::Vector2f(Points[i].y, Points[i].x), sf::Vector2f(cam1.get_pos().y, cam1.get_pos().x), cam1.get_tur().y, cam1.get_fov());
+//        y = (cos(cam1.get_tur().x)*y_yz+sin(cam1.get_tur().x)*y_yx)/2;
+
+          array[i].position = perspective(Points[i],cam1.get_pos(),cam1.get_tur().x,cam1.get_fov(),window);
        }
       return array;
      };
