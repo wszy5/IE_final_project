@@ -12,15 +12,15 @@ float distance(sf::Vector2f P, float angle, sf::Vector2f _0)
 sf::Vector2f perspective(sf::Vector3f point, sf::Vector3f cam, float angle, float fov, sf::Vector2u window)
  {
   float X,Y;
-  if(distance(sf::Vector2f(point.x,point.z),angle+90,sf::Vector2f(cam.x,cam.z))>0)
+  if(distance(sf::Vector2f(point.x,point.z),angle+90,sf::Vector2f(cam.x,cam.z))>1)
    {
     X=(window.x/2)-(10*distance(sf::Vector2f(cam.x,cam.z),angle,sf::Vector2f(point.x,point.z))/distance(sf::Vector2f(point.x,point.z),angle+90,sf::Vector2f(cam.x,cam.z))*fov); // K/M*fov
     Y=(window.y/2)-(10*(cam.y-point.y)/distance(sf::Vector2f(point.x,point.z),angle+90,sf::Vector2f(cam.x,cam.z))*fov);
    }
   else
    {
-    X=2137; // ooo panieeeeee
-    Y=2137; // to ty na mnie spojrzałeśśśś
+    X=(window.x/2)-(10*distance(sf::Vector2f(cam.x,cam.z),angle,sf::Vector2f(point.x,point.z))*fov);
+    Y=(window.y/2)-(10*(cam.y-point.y)*fov);
    };
   return(sf::Vector2f(X,Y));
  };
@@ -56,7 +56,7 @@ class Object2d //debug feature to deal with pesky stuff like motion
 
     void move(const sf::Time &elapsed)
      {
-      std::cout<<"Angle: "<<angle<<" cos(angle): "<<cos(angle*M_PI/180)<<" sin(angle): "<<sin(angle*M_PI/180)<<std::endl;
+//      std::cout<<"Angle: "<<angle<<" cos(angle): "<<cos(angle*M_PI/180)<<" sin(angle): "<<sin(angle*M_PI/180)<<std::endl;
 
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
        {
@@ -117,7 +117,7 @@ class Camera
     void move(const sf::Time &elapsed)
      {
 
-      std::cout<<fov<<std::endl;
+//      std::cout<<fov<<std::endl;
 
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
        {
@@ -174,10 +174,11 @@ class Camera
 class Object3d : sf::VertexArray
  {
   public:
-    Object3d(sf::PrimitiveType type_, std::size_t vertexCount_ = 0) : sf::VertexArray(type_, vertexCount_) // constructor
+    Object3d(sf::PrimitiveType type_, std::size_t vertexCount_ = 0, sf::Color color_ = sf::Color::White) : sf::VertexArray(type_, vertexCount_) // constructor
      {
       type = type_;
       vertexCount = vertexCount_;
+      color = color_;
        for (int i=0; i<vertexCount_; ++i)
         {
          Points.push_back(sf::Vector3f(0,0,0));
@@ -262,6 +263,7 @@ class Object3d : sf::VertexArray
       for (int i = 0; i < vertexCount; ++i)
        {
           array[i].position = perspective(Points[i],cam1.get_pos(),cam1.get_tur(),cam1.get_fov(),window);
+          array[i].color = color;
        }
       return array;
      };
@@ -292,6 +294,7 @@ class Object3d : sf::VertexArray
   private:
    std::size_t vertexCount;
    sf::PrimitiveType type;
+   sf::Color color;
    std::vector<sf::Vector3f> Points;
  };
 
@@ -315,7 +318,21 @@ int main()
 
     Camera cam01(sf::Vector3f(300,300,-500),0, 30);
 
+    Object3d Pole(sf::LineStrip,2);
+    Pole.set_position(0, sf::Vector3f(200,200,200));
+    Pole.set_position(1, sf::Vector3f(200,210,200));
 
+    Object3d Panel(sf::LineStrip,5);
+    Panel.set_position(0, sf::Vector3f(300,300,300));
+    Panel.set_position(1, sf::Vector3f(400,300,300));
+    Panel.set_position(2, sf::Vector3f(400,200,300));
+    Panel.set_position(3, sf::Vector3f(300,200,300));
+    Panel.set_position(4, sf::Vector3f(300,300,300));
+    Object3d Panel0(sf::Quads,4,sf::Color::Black);
+    Panel0.set_position(0, sf::Vector3f(300,300,300));
+    Panel0.set_position(1, sf::Vector3f(400,300,300));
+    Panel0.set_position(2, sf::Vector3f(400,200,300));
+    Panel0.set_position(3, sf::Vector3f(300,200,300));
 
 //    sf::VertexArray graph(sf::LineStrip, 3);
 //    graph[0].position = sf::Vector2f(100,100);
@@ -370,6 +387,9 @@ int main()
 //        window.draw(graph);
 //        window.draw(dot);
 //        window.draw(ray);
+//        window.draw(Pole.p_render(cam01, window.getSize()));
+//        window.draw(Panel0.p_render(cam01, window.getSize()));
+//        window.draw(Panel.p_render(cam01, window.getSize()));
 
         window.display( );
     }
