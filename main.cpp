@@ -6,7 +6,12 @@
 
 float distance(sf::Vector2f P, float angle, sf::Vector2f _0)
  {
-    return /*std::abs(*/(cos(angle*M_PI/180)*(P.x-_0.x))-(sin(angle*M_PI/180)*(_0.y-P.y))/*)*/;
+  return /*std::abs(*/(cos(angle*M_PI/180)*(P.x-_0.x))-(sin(angle*M_PI/180)*(_0.y-P.y))/*)*/;
+ };
+
+float distance_3d(sf::Vector3f p1, sf::Vector3f p2)
+ {
+  return sqrtf(powf(p2.x-p1.x,2)+powf(p2.y-p1.y,2)+powf(p2.z+p1.z,2));
  };
 
 sf::Vector2f perspective(sf::Vector3f point, sf::Vector3f cam, float angle, float fov, sf::Vector2u window)
@@ -24,6 +29,8 @@ sf::Vector2f perspective(sf::Vector3f point, sf::Vector3f cam, float angle, floa
    };
   return(sf::Vector2f(X,Y));
  };
+
+
 
 class Object2d //debug feature to deal with pesky stuff like motion
  {
@@ -188,6 +195,14 @@ class Object3d : sf::VertexArray
     void set_position(int index, sf::Vector3f position)
      {
       Points[index]= position;
+      float x=0,y=0,z=0;
+      for(auto point : Points)
+       {
+        x+=point.x;
+        y+=point.y;
+        z+=point.z;
+       }
+      CoM = sf::Vector3f(x/Points.size(),y/Points.size(),z/Points.size());
      };
 
     void print_point(int index)
@@ -195,6 +210,10 @@ class Object3d : sf::VertexArray
       std::cout<<Points[index].x<<std::endl;
      };
 
+    sf::Vector3f get_com()
+     {
+      return CoM;
+     };
 
     void rotate(sf::Vector3f origin, float rv=M_PI/4, float time=1, int plane=1) // 1 = xy plane | 2 = yz plane | 3= xz plane
      {
@@ -244,6 +263,9 @@ class Object3d : sf::VertexArray
        }
      }
 
+
+
+
     sf::VertexArray render()
      {
       sf::VertexArray array(type, vertexCount);
@@ -259,15 +281,31 @@ class Object3d : sf::VertexArray
     sf::VertexArray p_render(Camera cam1, sf::Vector2u window) // p for perspective
      {
       sf::VertexArray array(type, vertexCount);
+      sf::VertexArray null(sf::Points, 1);
+
+      bool abort = 1;
       for (int i = 0; i < vertexCount; ++i)
        {
+        if(distance(sf::Vector2f(Points[i].x,Points[i].z),cam1.get_tur()+90,sf::Vector2f(cam1.get_pos().x,cam1.get_pos().z))>0)
+         {
+          abort=0;
+          break;
+         }
+       }
+      if(abort==0)
+       {
+        for (int i = 0; i < vertexCount; ++i)
+         {
           array[i].position = perspective(Points[i],cam1.get_pos(),cam1.get_tur(),cam1.get_fov(),window);
           array[i].color = color;
+         }
+        return array;
        }
-      return array;
+      else
+       {
+        return null;
+       }
      };
-
-
 
     void cube(std::vector<sf::Vector3f> points)
      {
@@ -293,6 +331,7 @@ class Object3d : sf::VertexArray
    std::size_t vertexCount;
    sf::PrimitiveType type;
    sf::Color color;
+   sf::Vector3f CoM; // centre of mass
    std::vector<sf::Vector3f> Points;
  };
 
@@ -345,9 +384,47 @@ std::vector<Object3d> construct_panel(sf::Vector2f point1, sf::Vector2f point2, 
   return panel;
  };
 
+// last element is taken as pivot
+int Partition(std::vector<std::vector<Object3d>> &v, int start, int end, Camera cam){
+
+    int pivot = end;
+    int j = start;
+    for(int i=start;i<end;++i){
+        if(distance_3d(v[i][0].get_com(),cam.get_pos())>distance_3d(v[pivot][0].get_com(),cam.get_pos())){
+            swap(v[i],v[j]);
+            ++j;
+        }
+    }
+    swap(v[j],v[pivot]);
+    return j;
+
+}
+
+void Quicksort(std::vector<std::vector<Object3d>> &v, int start, int end, Camera cam){ // A quicksort algorythm i yoinked from the internet and modify to work as an oclusion mechanism
+
+    if(start<end){
+        int p = Partition(v,start,end,cam);
+        Quicksort(v,start,p-1, cam);
+        Quicksort(v,p+1,end, cam);
+    }
+
+}
+
+//void PrintVector(std::vector<std::vector<Object3d>> v){
+//    for(int i=0;i<v.size();++i)
+//        std::cout<<v[i][0].get_com()<<" ";
+//    cout<<"\n\n";
+//}
+
+//void Oclusion(std::vector<std::vector<Object3d>> &panels, Camera cam01)
+// {
+//  Quicksort(panels,0,panels.size()-1, cam01);
+// };
+
 int main()
 {
     sf::RenderWindow window( sf::VideoMode( 800, 600 ), "SFML WORK!" );
+    window.setFramerateLimit(60);
     sf::Clock clock;
 
     Object3d coobe(sf::LineStrip,16);
@@ -358,25 +435,19 @@ int main()
     sf::Vector2f origin (400,300);
 
     std::vector<std::vector<Object3d>> panels;
-    std::vector<Object3d> panel1 = construct_panel(sf::Vector2f(100,400),sf::Vector2f(200,400),sf::Vector2f(300,200),1);
+    std::vector<Object3d> panel1 = construct_panel(sf::Vector2f(100,400),sf::Vector2f(100,300),sf::Vector2f(300,200),1);
     panels.emplace_back(panel1);
-    std::vector<Object3d> panel2 = construct_panel(sf::Vector2f(300,400),sf::Vector2f(400,400),sf::Vector2f(300,200),2);
+    std::vector<Object3d> panel2 = construct_panel(sf::Vector2f(300,400),sf::Vector2f(300,300),sf::Vector2f(300,200),2);
     panels.emplace_back(panel2);
-    std::vector<Object3d> panel3 = construct_panel(sf::Vector2f(500,400),sf::Vector2f(600,400),sf::Vector2f(300,200),3);
+    std::vector<Object3d> panel3 = construct_panel(sf::Vector2f(500,400),sf::Vector2f(500,300),sf::Vector2f(300,200),3);
     panels.emplace_back(panel3);
-    std::vector<Object3d> panel4 = construct_panel(sf::Vector2f(700,400),sf::Vector2f(800,400),sf::Vector2f(300,200),4);
+    std::vector<Object3d> panel4 = construct_panel(sf::Vector2f(700,400),sf::Vector2f(700,300),sf::Vector2f(300,200),4);
     panels.emplace_back(panel4);
 
 //    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,1);
 //    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,2);
 
     Camera cam01(sf::Vector3f(300,300,-500),0, 30);
-
-    Object3d Pole(sf::LineStrip,2);
-    Pole.set_position(0, sf::Vector3f(200,200,200));
-    Pole.set_position(1, sf::Vector3f(200,210,200));
-
-
 
 //    sf::VertexArray graph(sf::LineStrip, 3);
 //    graph[0].position = sf::Vector2f(100,100);
@@ -406,6 +477,7 @@ int main()
 //        std::cout<<yee<<" : "<<test1.ang()<<std::endl;
 
         cam01.move(elapsed);
+        Quicksort(panels,0,panels.size()-1, cam01);
 
 //        std::cout<<"X: "<<cam01.get_pos().x<<" Y: "<<cam01.get_pos().y<<" Z: "<<cam01.get_pos().z<<" Turn: "<<cam01.get_tur()<<std::endl;
 
@@ -440,10 +512,7 @@ int main()
           {
            window.draw(part.p_render(cam01, window.getSize()));
           }
-          std::cout<<"ay ";
          }
-        std::cout<<std::endl;
-
         window.display( );
     }
 }
