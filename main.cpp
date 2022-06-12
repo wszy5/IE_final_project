@@ -11,7 +11,7 @@ float distance(sf::Vector2f P, float angle, sf::Vector2f _0)
 
 float distance_3d(sf::Vector3f p1, sf::Vector3f p2)
  {
-  return sqrtf(powf(p2.x-p1.x,2)+powf(p2.y-p1.y,2)+powf(p2.z+p1.z,2));
+  return sqrtf(powf(p2.x-p1.x,2)+powf(p2.y-p1.y,2)+powf(p2.z-p1.z,2));
  };
 
 sf::Vector2f perspective(sf::Vector3f point, sf::Vector3f cam, float angle, float fov, sf::Vector2u window)
@@ -307,6 +307,9 @@ class Object3d : sf::VertexArray
        }
      };
 
+
+
+
     void cube(std::vector<sf::Vector3f> points)
      {
       set_position(0, points[0]);
@@ -335,10 +338,10 @@ class Object3d : sf::VertexArray
    std::vector<sf::Vector3f> Points;
  };
 
-std::vector<Object3d> construct_panel(sf::Vector2f point1, sf::Vector2f point2, sf::Vector2f height, int type)
+std::vector<Object3d> construct_panel(sf::Vector2f point1, sf::Vector2f point2, sf::Vector2f height, int type, sf::Color color = sf::Color::Blue)
  {
   std::vector<Object3d> panel;
-  Object3d fill(sf::Quads, 4, sf::Color::Blue);
+  Object3d fill(sf::Quads, 4, color);
   fill.set_position(0, sf::Vector3f(point1.x,height.y,point1.y));
   fill.set_position(1, sf::Vector3f(point2.x,height.y,point2.y));
   fill.set_position(2, sf::Vector3f(point2.x,height.x,point2.y));
@@ -384,7 +387,162 @@ std::vector<Object3d> construct_panel(sf::Vector2f point1, sf::Vector2f point2, 
   return panel;
  };
 
-// last element is taken as pivot
+class Map
+ {
+  public:
+    Map(int X_, int Y_, std::vector<int> map_)
+     {
+      X = X_;
+      Y = Y_;
+      cX= (X*2)-1;
+      cY= (Y*2)-1;
+//      std::vector<int> cv_map;
+
+      if(map_.size() == X*Y)
+       {
+        std::cout<<"Map loaded susessfuly"<<std::endl;
+        map = map_;
+       }
+      else
+       {
+        std::cout<<"MAP LOADING ERROR: IMPROPER MAP DIMENSIONS"<<std::endl;
+       }
+
+      for(int i=0;i<Y;++i) // stretches the original matrix to accomaodate more data later 1's a wall and 0's air
+       {
+        for(int j=0;j<X;++j)
+         {
+          cv_map.emplace_back(map[(i*X)+j]);
+          if(j != X-1)
+           {cv_map.emplace_back(0);};
+         }
+        if(i != Y-1)
+        {
+         for(int j=0;j<cX;++j)
+          {
+           cv_map.emplace_back(0);
+          }
+        }
+       }
+
+      std::cout<<cv_map.size()<<std::endl;
+
+      for(int i=0;i<cY;++i) // puts 2's between blocks of air and wall, symbolising that a wall needs to be there
+       {
+        if(i%2 == 1)
+         {
+          for(int j=0;j<cX;j+=2)
+           {
+            if((cv_map[i*cX+j-cX] ==0 && cv_map[i*cX+j+cX] == 1)||(cv_map[i*cX+j+cX] ==0 && cv_map[i*cX+j-cX] == 1))
+             {
+              cv_map[i*cX+j] = 2;
+             }
+           }
+         }
+        else if(i%2 == 0)
+         {
+          for(int j=1;j<cX;j+=2)
+           {
+            if((cv_map[i*cX+j-1] ==0 && cv_map[i*cX+j+1] == 1)||(cv_map[i*cX+j+1] == 0 && cv_map[i*cX+j-1] == 1))
+             {
+              cv_map[i*cX+j] = 2;
+             }
+           }
+         }
+       }
+
+      for(int i=1;i<cY;i+=2) //places 3's between adjecent wall pannels, signifying a need for a seemless stransition
+       {
+        for(int j=1;j<cX;j+=2)
+         {
+          if((cv_map[i*cX+j-cX] == 2 && cv_map[i*cX+j+cX] == 2)||(cv_map[i*cX+j+1] == 2 && cv_map[i*cX+j-1] == 2))
+           {
+            cv_map[i*cX+j] = 3;
+           }
+         }
+       }
+
+      for(int i=0;i<cY;++i)
+       {
+        for(int j=0;j<cX;++j)
+         {
+          std::cout<<cv_map[i*cY+j]<<" ";
+         }
+        std::cout<<std::endl;
+       }
+     };
+
+    std::vector<std::vector<Object3d>> render(sf::Vector3f offset, float scale) //scale will be the side of the square panels the maze ios built out of
+     {
+      std::vector<std::vector<Object3d>> Map;
+      for(int i=0;i<cY;i++)
+       {
+        for(int j=0;j<cX;j++)
+         {
+          if(cv_map[i*cX+j] == 2)
+           {
+            if(i%2 == 1) //horizontal walls
+             {
+              if(cv_map[i*cX+j-1] == 3 && cv_map[i*cX+j+1] == 3)
+               {
+                //spawn in type 4 horizontally
+                Map.emplace_back(construct_panel(sf::Vector2f((j*scale/2)-(scale/2), i*scale/2), sf::Vector2f((j*scale/2)+(scale/2), i*scale/2), sf::Vector2f(0, scale), 4));
+               }
+              else if(cv_map[i*cX+j-1] == 3)
+               {
+                //spawn in type 3 horizontally
+                Map.emplace_back(construct_panel(sf::Vector2f((j*scale/2)-(scale/2), i*scale/2), sf::Vector2f((j*scale/2)+(scale/2), i*scale/2), sf::Vector2f(0, scale), 3));
+               }
+              else if(cv_map[i*cX+j+1] == 3)
+               {
+                //spawn in type 2 horizontally
+                Map.emplace_back(construct_panel(sf::Vector2f((j*scale/2)-(scale/2), i*scale/2), sf::Vector2f((j*scale/2)+(scale/2), i*scale/2), sf::Vector2f(0, scale), 2));
+               }
+              else
+               {
+                //spawn in type 1 horizontally
+                Map.emplace_back(construct_panel(sf::Vector2f((j*scale/2)-(scale/2), i*scale/2), sf::Vector2f((j*scale/2)+(scale/2), i*scale/2), sf::Vector2f(0, scale), 1));
+               }
+             }
+            else if(i%2 == 0) //vertical walls
+             {
+              if(cv_map[i*cX+j-cX] == 3 && cv_map[i*cX+j+cX] == 3)
+               {
+                //spawn in type 4 vertically
+                Map.emplace_back(construct_panel(sf::Vector2f(j*scale/2, (i*scale/2)-(scale/2)), sf::Vector2f(j*scale/2, (i*scale/2)+(scale/2)), sf::Vector2f(0, scale), 4));
+               }
+              else if(cv_map[i*cX+j-cX] == 3)
+               {
+                //spawn in type 3 vertically
+                Map.emplace_back(construct_panel(sf::Vector2f(j*scale/2, (i*scale/2)-(scale/2)), sf::Vector2f(j*scale/2, (i*scale/2)+(scale/2)), sf::Vector2f(0, scale), 3));
+               }
+              else if(cv_map[i*cX+j+cX] == 3)
+               {
+                //spawn in type 2 vertically
+                Map.emplace_back(construct_panel(sf::Vector2f(j*scale/2, (i*scale/2)-(scale/2)), sf::Vector2f(j*scale/2, (i*scale/2)+(scale/2)), sf::Vector2f(0, scale), 2));
+               }
+              else
+               {
+                //spawn in type 1 vertically
+                Map.emplace_back(construct_panel(sf::Vector2f(j*scale/2, (i*scale/2)-(scale/2)), sf::Vector2f(j*scale/2, (i*scale/2)+(scale/2)), sf::Vector2f(0, scale), 1));
+               }
+             }
+           }
+         }
+       }
+      return Map;
+     };
+
+
+  private:
+   int X,Y,cX,cY;
+   std::vector<int> map;
+   std::vector<int> cv_map;
+
+ };
+
+
+
 int Partition(std::vector<std::vector<Object3d>> &v, int start, int end, Camera cam){
 
     int pivot = end;
@@ -397,17 +555,15 @@ int Partition(std::vector<std::vector<Object3d>> &v, int start, int end, Camera 
     }
     swap(v[j],v[pivot]);
     return j;
-
 }
-
-void Quicksort(std::vector<std::vector<Object3d>> &v, int start, int end, Camera cam){ // A quicksort algorythm i yoinked from the internet and modify to work as an oclusion mechanism
-
-    if(start<end){
-        int p = Partition(v,start,end,cam);
-        Quicksort(v,start,p-1, cam);
-        Quicksort(v,p+1,end, cam);
-    }
-
+void Oclusion(std::vector<std::vector<Object3d>> &v, int start, int end, Camera cam) // A quicksort algorythm i yoinked from the internet and modify to work as an oclusion mechanism
+{
+ if(start<end)
+  {
+   int p = Partition(v,start,end,cam);
+   Oclusion(v,start,p-1, cam);
+   Oclusion(v,p+1,end, cam);
+  }
 }
 
 //void PrintVector(std::vector<std::vector<Object3d>> v){
@@ -427,6 +583,18 @@ int main()
     window.setFramerateLimit(60);
     sf::Clock clock;
 
+    std::vector<int> map1 {1,1,1,1,1,1,1,1,1,1,
+                           1,0,1,0,0,0,0,0,0,1,
+                           1,0,1,1,1,0,0,1,0,1,
+                           1,0,0,0,1,0,1,1,0,1,
+                           1,0,1,0,1,0,1,0,0,1,
+                           1,0,1,0,0,0,1,1,1,1,
+                           1,1,1,1,1,0,0,0,0,1,
+                           1,0,0,0,1,1,0,1,0,1,
+                           1,0,1,0,0,0,0,1,0,1,
+                           1,1,1,1,1,1,1,1,1,1};
+    Map Map1(10,10,map1);
+
     Object3d coobe(sf::LineStrip,16);
     std::vector<sf::Vector3f> points {sf::Vector3f(200, 200, 200), sf::Vector3f(400, 200, 200), sf::Vector3f(400, 400, 200), sf::Vector3f(200, 400, 200),
                                       sf::Vector3f(200, 200, 400), sf::Vector3f(400, 200, 400), sf::Vector3f(400, 400, 400), sf::Vector3f(200, 400, 400)};
@@ -435,14 +603,15 @@ int main()
     sf::Vector2f origin (400,300);
 
     std::vector<std::vector<Object3d>> panels;
-    std::vector<Object3d> panel1 = construct_panel(sf::Vector2f(100,400),sf::Vector2f(100,300),sf::Vector2f(300,200),1);
-    panels.emplace_back(panel1);
-    std::vector<Object3d> panel2 = construct_panel(sf::Vector2f(300,400),sf::Vector2f(300,300),sf::Vector2f(300,200),2);
-    panels.emplace_back(panel2);
-    std::vector<Object3d> panel3 = construct_panel(sf::Vector2f(500,400),sf::Vector2f(500,300),sf::Vector2f(300,200),3);
-    panels.emplace_back(panel3);
-    std::vector<Object3d> panel4 = construct_panel(sf::Vector2f(700,400),sf::Vector2f(700,300),sf::Vector2f(300,200),4);
-    panels.emplace_back(panel4);
+//    std::vector<Object3d> panel1 = construct_panel(sf::Vector2f(100,100),sf::Vector2f(100,200),sf::Vector2f(300,200),1, sf::Color::Red);
+//    panels.emplace_back(panel1);
+//    std::vector<Object3d> panel2 = construct_panel(sf::Vector2f(100,200),sf::Vector2f(200,200),sf::Vector2f(300,200),2, sf::Color::Blue);
+//    panels.emplace_back(panel2);
+//    std::vector<Object3d> panel3 = construct_panel(sf::Vector2f(200,200),sf::Vector2f(200,100),sf::Vector2f(300,200),3, sf::Color::Green);
+//    panels.emplace_back(panel3);
+//    std::vector<Object3d> panel4 = construct_panel(sf::Vector2f(200,100),sf::Vector2f(100,100),sf::Vector2f(300,200),4, sf::Color::Yellow);
+//    panels.emplace_back(panel4);
+    panels = Map1.render(sf::Vector3f(0,0,0),100);
 
 //    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,1);
 //    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,2);
@@ -477,7 +646,10 @@ int main()
 //        std::cout<<yee<<" : "<<test1.ang()<<std::endl;
 
         cam01.move(elapsed);
-        Quicksort(panels,0,panels.size()-1, cam01);
+        Oclusion(panels,0,panels.size()-1, cam01);
+//        std::cout<<"Red: "<<distance_3d(panel1[0].get_com(), cam01.get_pos())<<" Blue: "<<distance_3d(panel2[0].get_com(), cam01.get_pos())
+//                 <<" Green: "<<distance_3d(panel3[0].get_com(), cam01.get_pos())<<" Yellow: "<< distance_3d(panel4[0].get_com(), cam01.get_pos())
+//                 <<" Camera X: "<<cam01.get_pos().x<<" Y: "<<cam01.get_pos().y<<" Z: "<<cam01.get_pos().z<<std::endl;
 
 //        std::cout<<"X: "<<cam01.get_pos().x<<" Y: "<<cam01.get_pos().y<<" Z: "<<cam01.get_pos().z<<" Turn: "<<cam01.get_tur()<<std::endl;
 
