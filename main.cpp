@@ -162,11 +162,14 @@ class Camera
        {
         fov -= 50*elapsed.asSeconds();
        }
-      if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
+
+
+
+      if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
        {
         turn += 50*elapsed.asSeconds();
        }
-      if(sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+      if(sf::Mouse::isButtonPressed(sf::Mouse::Right))
        {
         turn -= 50*elapsed.asSeconds();
        }
