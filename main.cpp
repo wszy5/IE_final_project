@@ -598,6 +598,27 @@ int main()
                            1,1,1,1,1,1,1,1,1,1};
     Map Map1(10,10,map1);
 
+
+    std::vector<sf::RectangleShape> rectangles;
+//    for(int i=0; i<map1.size(); i++){       //filling rectangles vector
+//        if(map1[i]==1){
+//            sf::RectangleShape shape;
+//            rectangles.push_back(shape);
+//        }
+
+//    }
+
+    for(int i=0;i<10;++i)
+     {
+      for(int j=0;j<10;++j)
+       {
+          sf::RectangleShape shape;
+          shape.setPosition(j*50,i*50);
+          rectangles.emplace_back(shape);
+    }}
+
+
+
     Object3d coobe(sf::LineStrip,16);
     std::vector<sf::Vector3f> points {sf::Vector3f(200, 200, 200), sf::Vector3f(400, 200, 200), sf::Vector3f(400, 400, 200), sf::Vector3f(200, 400, 200),
                                       sf::Vector3f(200, 200, 400), sf::Vector3f(400, 200, 400), sf::Vector3f(400, 400, 400), sf::Vector3f(200, 400, 400)};
@@ -632,6 +653,9 @@ int main()
 //    ray[1].color = sf::Color::Green;
 
 
+    sf::RectangleShape player;
+
+
     while ( window.isOpen( ) )
     {
         sf::Time elapsed = clock.restart();
@@ -649,6 +673,7 @@ int main()
 //        std::cout<<yee<<" : "<<test1.ang()<<std::endl;
 
         cam01.move(elapsed);
+        player.setPosition(cam01.get_pos().x,cam01.get_pos().y); //player tracking the camera
         Oclusion(panels,0,panels.size()-1, cam01);
 //        std::cout<<"Red: "<<distance_3d(panel1[0].get_com(), cam01.get_pos())<<" Blue: "<<distance_3d(panel2[0].get_com(), cam01.get_pos())
 //                 <<" Green: "<<distance_3d(panel3[0].get_com(), cam01.get_pos())<<" Yellow: "<< distance_3d(panel4[0].get_com(), cam01.get_pos())
