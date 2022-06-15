@@ -391,7 +391,6 @@ class Map
       Y = Y_;
       cX= (X*2)-1;
       cY= (Y*2)-1;
-//      std::vector<int> cv_map;
 
       if(map_.size() == X*Y)
        {
@@ -405,13 +404,13 @@ class Map
 
       for(int i=0;i<Y;++i) // stretches the original matrix to accomaodate more data later 1's a wall and 0's air
        {
-        for(int j=0;j<X;++j)
+        for(int j=0;j<X;++j) // emplaces 0 after every non-last member of the row
          {
           cv_map.emplace_back(map[(i*X)+j]);
           if(j != X-1)
            {cv_map.emplace_back(0);};
          }
-        if(i != Y-1)
+        if(i != Y-1) // emplaces a row of 0's after every row that isnt the last
         {
          for(int j=0;j<cX;++j)
           {
@@ -420,7 +419,7 @@ class Map
         }
        }
 
-      std::cout<<cv_map.size()<<std::endl;
+//      std::cout<<cv_map.size()<<std::endl;
 
       for(int i=0;i<cY;++i) // puts 2's between blocks of air and wall, symbolising that a wall needs to be there
        {
@@ -428,7 +427,7 @@ class Map
          {
           for(int j=0;j<cX;j+=2)
            {
-            if((cv_map[i*cX+j-cX] ==0 && cv_map[i*cX+j+cX] == 1)||(cv_map[i*cX+j+cX] ==0 && cv_map[i*cX+j-cX] == 1))
+            if(((cv_map[i*cX+j-cX]==0||cv_map[i*cX+j-cX]==4) && cv_map[i*cX+j+cX] == 1)||((cv_map[i*cX+j+cX]==0||cv_map[i*cX+j+cX]==4) && cv_map[i*cX+j-cX] == 1))
              {
               cv_map[i*cX+j] = 2;
              }
@@ -457,7 +456,7 @@ class Map
          }
        }
 
-      for(int i=0;i<cY;++i)
+      for(int i=0;i<cY;++i) // just a printer function
        {
         for(int j=0;j<cX;++j)
          {
@@ -466,6 +465,11 @@ class Map
         std::cout<<std::endl;
        }
      };
+
+    sf::Vector3f get_spawnpoint()
+     {
+      return spawnpoint;
+     }
 
     std::vector<std::vector<Object3d>> render(sf::Vector3f offset, float scale) //scale will be the side of the square panels the maze ios built out of
      {
@@ -481,22 +485,22 @@ class Map
               if(cv_map[i*cX+j-1] == 3 && cv_map[i*cX+j+1] == 3)
                {
                 //spawn in type 4 horizontally
-                Map.emplace_back(construct_panel(sf::Vector2f((j*scale/2)-(scale/2), i*scale/2), sf::Vector2f((j*scale/2)+(scale/2), i*scale/2), sf::Vector2f(0, scale), 4));
+                Map.emplace_back(construct_panel(sf::Vector2f((j*scale/2)-(scale/2), i*scale/2), sf::Vector2f((j*scale/2)+(scale/2), i*scale/2), sf::Vector2f(offset.y, scale), 4));
                }
               else if(cv_map[i*cX+j-1] == 3)
                {
                 //spawn in type 3 horizontally
-                Map.emplace_back(construct_panel(sf::Vector2f((j*scale/2)-(scale/2), i*scale/2), sf::Vector2f((j*scale/2)+(scale/2), i*scale/2), sf::Vector2f(0, scale), 3));
+                Map.emplace_back(construct_panel(sf::Vector2f((j*scale/2)-(scale/2), i*scale/2), sf::Vector2f((j*scale/2)+(scale/2), i*scale/2), sf::Vector2f(offset.y, scale), 3));
                }
               else if(cv_map[i*cX+j+1] == 3)
                {
                 //spawn in type 2 horizontally
-                Map.emplace_back(construct_panel(sf::Vector2f((j*scale/2)-(scale/2), i*scale/2), sf::Vector2f((j*scale/2)+(scale/2), i*scale/2), sf::Vector2f(0, scale), 2));
+                Map.emplace_back(construct_panel(sf::Vector2f((j*scale/2)-(scale/2), i*scale/2), sf::Vector2f((j*scale/2)+(scale/2), i*scale/2), sf::Vector2f(offset.y, scale), 2));
                }
               else
                {
                 //spawn in type 1 horizontally
-                Map.emplace_back(construct_panel(sf::Vector2f((j*scale/2)-(scale/2), i*scale/2), sf::Vector2f((j*scale/2)+(scale/2), i*scale/2), sf::Vector2f(0, scale), 1));
+                Map.emplace_back(construct_panel(sf::Vector2f((j*scale/2)-(scale/2), i*scale/2), sf::Vector2f((j*scale/2)+(scale/2), i*scale/2), sf::Vector2f(offset.y, scale), 1));
                }
              }
             else if(i%2 == 0) //vertical walls
@@ -504,24 +508,28 @@ class Map
               if(cv_map[i*cX+j-cX] == 3 && cv_map[i*cX+j+cX] == 3)
                {
                 //spawn in type 4 vertically
-                Map.emplace_back(construct_panel(sf::Vector2f(j*scale/2, (i*scale/2)-(scale/2)), sf::Vector2f(j*scale/2, (i*scale/2)+(scale/2)), sf::Vector2f(0, scale), 4));
+                Map.emplace_back(construct_panel(sf::Vector2f(j*scale/2, (i*scale/2)-(scale/2)), sf::Vector2f(j*scale/2, (i*scale/2)+(scale/2)), sf::Vector2f(offset.y, scale), 4));
                }
               else if(cv_map[i*cX+j-cX] == 3)
                {
                 //spawn in type 3 vertically
-                Map.emplace_back(construct_panel(sf::Vector2f(j*scale/2, (i*scale/2)-(scale/2)), sf::Vector2f(j*scale/2, (i*scale/2)+(scale/2)), sf::Vector2f(0, scale), 3));
+                Map.emplace_back(construct_panel(sf::Vector2f(j*scale/2, (i*scale/2)-(scale/2)), sf::Vector2f(j*scale/2, (i*scale/2)+(scale/2)), sf::Vector2f(offset.y, scale), 3));
                }
               else if(cv_map[i*cX+j+cX] == 3)
                {
                 //spawn in type 2 vertically
-                Map.emplace_back(construct_panel(sf::Vector2f(j*scale/2, (i*scale/2)-(scale/2)), sf::Vector2f(j*scale/2, (i*scale/2)+(scale/2)), sf::Vector2f(0, scale), 2));
+                Map.emplace_back(construct_panel(sf::Vector2f(j*scale/2, (i*scale/2)-(scale/2)), sf::Vector2f(j*scale/2, (i*scale/2)+(scale/2)), sf::Vector2f(offset.y, scale), 2));
                }
               else
                {
                 //spawn in type 1 vertically
-                Map.emplace_back(construct_panel(sf::Vector2f(j*scale/2, (i*scale/2)-(scale/2)), sf::Vector2f(j*scale/2, (i*scale/2)+(scale/2)), sf::Vector2f(0, scale), 1));
+                Map.emplace_back(construct_panel(sf::Vector2f(j*scale/2, (i*scale/2)-(scale/2)), sf::Vector2f(j*scale/2, (i*scale/2)+(scale/2)), sf::Vector2f(offset.y, scale), 1));
                }
              }
+           }
+          if(cv_map[i*cX+j] == 4)
+           {
+            spawnpoint = sf::Vector3f((j*scale)/2, offset.y+(3*scale/4), (i*scale)/2);
            }
          }
        }
@@ -533,7 +541,7 @@ class Map
    int X,Y,cX,cY;
    std::vector<int> map;
    std::vector<int> cv_map;
-
+   sf::Vector3f spawnpoint;
  };
 
 
@@ -582,7 +590,7 @@ int main()
     sf::Clock clock;
 
     std::vector<int> map1 {1,1,1,1,1,1,1,1,1,1,
-                           1,0,1,0,0,0,0,0,0,1,
+                           1,0,1,0,0,4,0,0,0,1,
                            1,0,1,1,1,0,0,1,0,1,
                            1,0,0,0,1,0,1,1,0,1,
                            1,0,1,0,1,0,1,0,0,1,
@@ -594,13 +602,6 @@ int main()
     Map Map1(10,10,map1);
 
     std::vector<sf::RectangleShape> rectangles;
-  //    for(int i=0; i<map1.size(); i++){       //filling rectangles vector
-  //        if(map1[i]==1){
-  //            sf::RectangleShape shape;
-  //            rectangles.push_back(shape);
-  //        }
-
-  //    }
 
       for(int i=0;i<10;++i)
        {
@@ -633,7 +634,7 @@ int main()
 //    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,1);
 //    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,2);
 
-    Camera cam01(sf::Vector3f(300,300,-500),0, 30);
+    Camera cam01(Map1.get_spawnpoint(),0, 30);
 sf::RectangleShape player;
 
 //    sf::VertexArray graph(sf::LineStrip, 3);
