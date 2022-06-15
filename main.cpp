@@ -27,10 +27,9 @@ sf::Vector2f perspective(sf::Vector3f point, sf::Vector3f cam, float angle, floa
     X=(window.x/2)-(10*distance(sf::Vector2f(cam.x,cam.z),angle,sf::Vector2f(point.x,point.z))*fov);
     Y=(window.y/2)-(10*(cam.y-point.y)*fov);
    };
+
   return(sf::Vector2f(X,Y));
  };
-
-
 
 class Object2d //debug feature to deal with pesky stuff like motion
  {
@@ -110,7 +109,8 @@ class Camera
       CoM_y = position.y;
       Ani_y = 0;
       minicamera.setFillColor(sf::Color::Yellow);
-      minicamera.setRadius(2);
+      minicamera.setRadius(20);
+      minicamera.setPosition(sf::Vector2f(position.x,-position.z));
      };
 
     sf::Vector3f get_pos()
@@ -137,10 +137,10 @@ class Camera
      {
       return minicamera;
      }
-    void move(const sf::Time &elapsed, const sf::Window &window, const sf::Time &elapsed_w)
+    void move(const sf::Time &elapsed, const sf::Window &window, const sf::Time &elapsed_w, std::vector<sf::RectangleShape> walls)
      {
 
-      int offset = sf::Mouse::getPosition(window).x-window.getSize().x/2;
+      int offset = sf::Mouse::getPosition(window).x-window.getSize().x/2; //Turning the camera with the mouse movement
       turn -= 8*elapsed.asSeconds()*offset;
       sf::Mouse::setPosition(sf::Vector2i(window.getSize().x/2, window.getSize().y/2), window);
 
@@ -158,54 +158,126 @@ class Camera
          }
        }
 
+      velocity.y = 0.f;
+      velocity.x = 0.f;
+      velocity.z = 0.f;
+
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
        {
-        position.z += 100*elapsed.asSeconds()*cos(turn*M_PI/180);
-        position.x -= 100*elapsed.asSeconds()*sin(turn*M_PI/180);
+        velocity.z += movementSpeed*elapsed.asSeconds()*cos(turn*M_PI/180);
+        velocity.x -= movementSpeed*elapsed.asSeconds()*sin(turn*M_PI/180);
        }
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
        {
-        position.z -= 100*elapsed.asSeconds()*cos(turn*M_PI/180);
-        position.x += 100*elapsed.asSeconds()*sin(turn*M_PI/180);
+        velocity.z -= movementSpeed*elapsed.asSeconds()*cos(turn*M_PI/180);
+        velocity.x += movementSpeed*elapsed.asSeconds()*sin(turn*M_PI/180);
        }
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
        {
-        position.z += 100*elapsed.asSeconds()*sin(turn*M_PI/180);
-        position.x += 100*elapsed.asSeconds()*cos(turn*M_PI/180);
+        velocity.z += movementSpeed*elapsed.asSeconds()*sin(turn*M_PI/180);
+        velocity.x += movementSpeed*elapsed.asSeconds()*cos(turn*M_PI/180);
        }
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
        {
-        position.z -= 100*elapsed.asSeconds()*sin(turn*M_PI/180);
-        position.x -= 100*elapsed.asSeconds()*cos(turn*M_PI/180);
+        velocity.z -= movementSpeed*elapsed.asSeconds()*sin(turn*M_PI/180);
+        velocity.x -= movementSpeed*elapsed.asSeconds()*cos(turn*M_PI/180);
        }
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
        {
-        CoM_y -= 100*elapsed.asSeconds();
+        CoM_y -= movementSpeed*elapsed.asSeconds();
        }
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
        {
-        CoM_y += 100*elapsed.asSeconds();
+        CoM_y += movementSpeed*elapsed.asSeconds();
        }
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::O))
        {
-        fov += 50*elapsed.asSeconds();
+        fov += movementSpeed/2*elapsed.asSeconds();
        }
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::P))
        {
-        fov -= 50*elapsed.asSeconds();
+        fov -= movementSpeed/2*elapsed.asSeconds();
        }
       position.y = CoM_y + Ani_y;
-      minicamera.setPosition(sf::Vector2f(position.x, -position.z));
+
+
+      //Collision
+      for (auto &wall : walls)
+      {
+          sf::FloatRect playerBounds = minicamera.getGlobalBounds();
+          sf::FloatRect wallBounds = wall.getGlobalBounds();
+
+          nextPos = playerBounds;
+          nextPos.left += velocity.x;
+          nextPos.top -= velocity.z;
+
+          if (wallBounds.intersects(nextPos))
+          {
+              //Bottom collision
+              if (playerBounds.top < wallBounds.top
+                  && playerBounds.top + playerBounds.height < wallBounds.top + wallBounds.height
+                  && playerBounds.left < wallBounds.left + wallBounds.width
+                  && playerBounds.left + playerBounds.width > wallBounds.left
+                  )
+              {
+                  velocity.z = 0.f;
+                  minicamera.setPosition(playerBounds.left, wallBounds.top - playerBounds.height);
+              }
+
+              //Top collision
+              else if (playerBounds.top > wallBounds.top
+                  && playerBounds.top + playerBounds.height > wallBounds.top + wallBounds.height
+                  && playerBounds.left < wallBounds.left + wallBounds.width
+                  && playerBounds.left + playerBounds.width > wallBounds.left
+                  )
+              {
+                  velocity.z = 0.f;
+                  minicamera.setPosition(playerBounds.left, wallBounds.top + wallBounds.height);
+              }
+
+              //Right collision
+              if (playerBounds.left < wallBounds.left
+                  && playerBounds.left + playerBounds.width < wallBounds.left + wallBounds.width
+                  && playerBounds.top < wallBounds.top + wallBounds.height
+                  && playerBounds.top + playerBounds.height > wallBounds.top
+                  )
+              {
+                  velocity.x = 0.f;
+                  minicamera.setPosition(wallBounds.left - playerBounds.width, playerBounds.top);
+              }
+
+              //Left collision
+              else if (playerBounds.left > wallBounds.left
+                  && playerBounds.left + playerBounds.width > wallBounds.left + wallBounds.width
+                  && playerBounds.top < wallBounds.top + wallBounds.height
+                  && playerBounds.top + playerBounds.height > wallBounds.top
+                  )
+              {
+                  velocity.x = 0.f;
+                  minicamera.setPosition(wallBounds.left+ + wallBounds.width, playerBounds.top);
+              }
+          }
+      }
+
+      position.x += velocity.x;
+      position.y += velocity.y;
+      position.z += velocity.z;
+      minicamera.setPosition(sf::Vector2f(position.x+(scale/2)-(minicamera.getRadius()), -position.z+(scale/2)-(minicamera.getRadius())));
      }
 
   private:
    sf::Vector3f position;
+   float scale = 100;
    float turn;
    float fov;
    float CoM_y; //position y with disregrard for animation
    float Ani_y; //position y with regard only to animation
    int state; // state being a state of animation 0-standing 1-walking 2-stopping
+   float movementSpeed = 50;
+   sf::Vector3f velocity;
    sf::CircleShape minicamera;
+   sf::FloatRect nextPos;
+
  };
 
 class Object3d : sf::VertexArray
@@ -585,7 +657,7 @@ class Map
            }
           if(cv_map[i*cX+j] == 4)
            {
-            spawnpoint = sf::Vector3f((j*scale)/2, offset.y+(3*scale/4), -  (i*scale)/2);
+            spawnpoint = sf::Vector3f((j*scale/2), offset.y+(3*scale/4), -(i*scale/2));
            }
          }
        }
@@ -602,20 +674,23 @@ class Map
 
 
 
-int Partition(std::vector<std::vector<Object3d>> &v, int start, int end, Camera cam){
-
-    int pivot = end;
-    int j = start;
-    for(int i=start;i<end;++i){
-        if(distance_3d(v[i][0].get_com(),cam.get_pos())>distance_3d(v[pivot][0].get_com(),cam.get_pos())){
-            swap(v[i],v[j]);
-            ++j;
-        }
+int Partition(std::vector<std::vector<Object3d>> &v, int start, int end, Camera cam)
+ {
+  int pivot = end;
+  int j = start;
+  for(int i=start;i<end;++i)
+   {
+    if(distance_3d(v[i][0].get_com(),cam.get_pos())>distance_3d(v[pivot][0].get_com(),cam.get_pos()))
+     {
+      swap(v[i],v[j]);
+      ++j;
+     }
     }
-    swap(v[j],v[pivot]);
-    return j;
-}
-void Oclusion(std::vector<std::vector<Object3d>> &v, int start, int end, Camera cam) // A quicksort algorythm i yoinked from the internet and modify to work as an oclusion mechanism
+  swap(v[j],v[pivot]);
+  return j;
+ }
+
+void Oclusion(std::vector<std::vector<Object3d>> &v, int start, int end, Camera cam) // A quicksort algorythm i modified to work as an oclusion mechanism
 {
  if(start<end)
   {
@@ -625,20 +700,10 @@ void Oclusion(std::vector<std::vector<Object3d>> &v, int start, int end, Camera 
   }
 }
 
-//void PrintVector(std::vector<std::vector<Object3d>> v){
-//    for(int i=0;i<v.size();++i)
-//        std::cout<<v[i][0].get_com()<<" ";
-//    cout<<"\n\n";
-//}
-
-//void Oclusion(std::vector<std::vector<Object3d>> &panels, Camera cam01)
-// {
-//  Quicksort(panels,0,panels.size()-1, cam01);
-// };
 
 int main()
 {
-    sf::RenderWindow window( sf::VideoMode( 800, 600 ), "SFML WORK!" );
+    sf::RenderWindow window( sf::VideoMode( 1200, 800 ), "Mazer" );
     window.setFramerateLimit(60);
     window.setMouseCursorVisible(false);
     sf::Mouse::setPosition(sf::Vector2i(window.getSize().x/2, window.getSize().y/2), window);
@@ -672,7 +737,7 @@ int main()
                            1,0,0,0,0,0,0,1,0,0,0,1,1,0,0,0,0,0,0,1,
                            1,0,1,1,1,1,0,1,0,1,0,1,0,0,1,0,1,1,1,1,
                            1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,
-                           1,1,1,0,1,0,1,1,0,1,1,1,1,0,0,0,1,1,0,1,
+                           1,1,1,0,1,0,0,1,0,1,1,1,1,0,0,0,1,1,0,1,
                            1,0,0,0,0,0,4,0,0,0,0,1,0,0,1,1,1,0,0,1,
                            1,0,1,0,1,1,0,1,0,1,0,0,0,1,1,0,1,0,1,1,
                            1,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,1,0,0,1,
@@ -691,14 +756,16 @@ int main()
 
     std::vector<std::vector<Object3d>> panels;
     std::vector<sf::RectangleShape> tiles;
-    panels = Map1.render(sf::Vector3f(0,0,0),10);
-    tiles = Map1.render2d(sf::Vector3f(0,0,0),10);
+    panels = Map1.render(sf::Vector3f(0,0,0),100);
+    tiles = Map1.render2d(sf::Vector3f(0,0,0),100);
+
+
 
 //    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,1);
 //    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,2);
 
     Camera Cam01(Map1.get_spawnpoint(),0, 30);
-    sf::RectangleShape player;
+
 
 //    sf::VertexArray graph(sf::LineStrip, 3);
 //    graph[0].position = sf::Vector2f(100,100);
@@ -716,11 +783,11 @@ int main()
         sf::Time elapsed = clock.restart();
         sf::Event event;
 
-        Cam01.move(elapsed, window, walk_clock.getElapsedTime());
-        player.setPosition(Cam01.get_pos().x,Cam01.get_pos().y);
+//        Colission(Cam01.get_mini(), tiles, sf::Vector2f(100,100));
+        Cam01.move(elapsed, window, walk_clock.getElapsedTime(), tiles);
         Oclusion(panels,0,panels.size()-1, Cam01);
 
-        std::cout<<Cam01.get_state()<<std::endl;
+//        std::cout<<Cam01.get_state()<<std::endl;
 
         while( window.pollEvent( event ) )
         {
@@ -731,6 +798,10 @@ int main()
                 Cam01.set_state(1);
                 walk_clock.restart();
                }
+              if(event.key.code==sf::Keyboard::Escape)
+               {
+                window.close();
+               }
              }
             if(event.type==sf::Event::KeyReleased)
              {
@@ -740,13 +811,11 @@ int main()
                }
              }
             switch (event.type)
-            {
+             {
             case sf::Event::Closed:
                 window.close();
-
                 break;
-
-            }
+             }
         }
 
 
@@ -769,11 +838,11 @@ int main()
            window.draw(part.p_render(Cam01, window.getSize()));
           }
          }
-        for(auto tile : tiles)
-         {
-          window.draw(tile);
-         }
-        window.draw(Cam01.get_mini());
+//        for(auto tile : tiles)
+//         {
+//          window.draw(tile);
+//         }
+//        window.draw(Cam01.get_mini());
 
         window.display( );
     }
