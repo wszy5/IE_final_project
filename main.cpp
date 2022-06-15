@@ -106,6 +106,9 @@ class Camera
       position = position_;
       turn = turn_;
       fov = fov_;
+      state = 0;
+      CoM_y = position.y;
+      Ani_y = 0;
      };
 
     sf::Vector3f get_pos()
@@ -120,13 +123,36 @@ class Camera
      {
       return fov;
      };
+    int get_state()
+     {
+      return state;
+     };
 
-    void move(const sf::Time &elapsed, const sf::Window &window)
+    void set_state(int nstate)
+     {
+      state = nstate;
+     };
+
+    void move(const sf::Time &elapsed, const sf::Window &window, const sf::Time &elapsed_w)
      {
 
       int offset = sf::Mouse::getPosition(window).x-window.getSize().x/2;
       turn -= 8*elapsed.asSeconds()*offset;
       sf::Mouse::setPosition(sf::Vector2i(window.getSize().x/2, window.getSize().y/2), window);
+
+      if(state==1)
+       {
+        Ani_y = (cos(12*elapsed_w.asSeconds())-1)*5/3; //running animation (camera bobbing up and down)
+       }
+      else if(state==2)
+       {
+        Ani_y -=elapsed.asSeconds()/12;
+        if(Ani_y < 0)
+         {
+          Ani_y=0;
+          state=0;
+         }
+       }
 
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
        {
@@ -150,11 +176,11 @@ class Camera
        }
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
        {
-        position.y -= 100*elapsed.asSeconds();
+        CoM_y -= 100*elapsed.asSeconds();
        }
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
        {
-        position.y += 100*elapsed.asSeconds();
+        CoM_y += 100*elapsed.asSeconds();
        }
       if(sf::Keyboard::isKeyPressed(sf::Keyboard::O))
        {
@@ -164,13 +190,16 @@ class Camera
        {
         fov -= 50*elapsed.asSeconds();
        }
+      position.y = CoM_y + Ani_y;
      }
 
   private:
    sf::Vector3f position;
    float turn;
    float fov;
-
+   float CoM_y; //position y with disregrard for animation
+   float Ani_y; //position y with regard only to animation
+   int state; // state being a state of animation 0-standing 1-walking 2-stopping
  };
 
 class Object3d : sf::VertexArray
@@ -588,6 +617,7 @@ int main()
     sf::Mouse::setPosition(sf::Vector2i(window.getSize().x/2, window.getSize().y/2), window);
 
     sf::Clock clock;
+    sf::Clock walk_clock;
 
     std::vector<int> map1 {1,1,1,1,1,1,1,1,1,1,
                            1,0,1,0,0,4,0,0,0,1,
@@ -621,21 +651,13 @@ int main()
     sf::Vector2f origin (400,300);
 
     std::vector<std::vector<Object3d>> panels;
-//    std::vector<Object3d> panel1 = construct_panel(sf::Vector2f(100,100),sf::Vector2f(100,200),sf::Vector2f(300,200),1, sf::Color::Red);
-//    panels.emplace_back(panel1);
-//    std::vector<Object3d> panel2 = construct_panel(sf::Vector2f(100,200),sf::Vector2f(200,200),sf::Vector2f(300,200),2, sf::Color::Blue);
-//    panels.emplace_back(panel2);
-//    std::vector<Object3d> panel3 = construct_panel(sf::Vector2f(200,200),sf::Vector2f(200,100),sf::Vector2f(300,200),3, sf::Color::Green);
-//    panels.emplace_back(panel3);
-//    std::vector<Object3d> panel4 = construct_panel(sf::Vector2f(200,100),sf::Vector2f(100,100),sf::Vector2f(300,200),4, sf::Color::Yellow);
-//    panels.emplace_back(panel4);
     panels = Map1.render(sf::Vector3f(0,0,0),100);
 
 //    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,1);
 //    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,2);
 
-    Camera cam01(Map1.get_spawnpoint(),0, 30);
-sf::RectangleShape player;
+    Camera Cam01(Map1.get_spawnpoint(),0, 30);
+    sf::RectangleShape player;
 
 //    sf::VertexArray graph(sf::LineStrip, 3);
 //    graph[0].position = sf::Vector2f(100,100);
@@ -653,28 +675,29 @@ sf::RectangleShape player;
         sf::Time elapsed = clock.restart();
         sf::Event event;
 
-//        test1.move(elapsed);
-//        dot.setPosition(test1.pos().x-dot.getRadius(), test1.pos().y-dot.getRadius());
-//        ray[0].position = sf::Vector2f(test1.pos());
-//        ray[1].position = sf::Vector2f(test1.pos2());
+        Cam01.move(elapsed, window, walk_clock.getElapsedTime());
+        player.setPosition(Cam01.get_pos().x,Cam01.get_pos().y);
+        Oclusion(panels,0,panels.size()-1, Cam01);
 
-//        float yee = perspective(dot2.getPosition(), test1.pos(), test1.ang(), test1.gfov());
-
-//        dot3.setPosition(400+yee, 550);
-
-//        std::cout<<yee<<" : "<<test1.ang()<<std::endl;
-
-        cam01.move(elapsed, window);
-        player.setPosition(cam01.get_pos().x,cam01.get_pos().y);
-        Oclusion(panels,0,panels.size()-1, cam01);
-//        std::cout<<"Red: "<<distance_3d(panel1[0].get_com(), cam01.get_pos())<<" Blue: "<<distance_3d(panel2[0].get_com(), cam01.get_pos())
-//                 <<" Green: "<<distance_3d(panel3[0].get_com(), cam01.get_pos())<<" Yellow: "<< distance_3d(panel4[0].get_com(), cam01.get_pos())
-//                 <<" Camera X: "<<cam01.get_pos().x<<" Y: "<<cam01.get_pos().y<<" Z: "<<cam01.get_pos().z<<std::endl;
-
-//        std::cout<<"X: "<<cam01.get_pos().x<<" Y: "<<cam01.get_pos().y<<" Z: "<<cam01.get_pos().z<<" Turn: "<<cam01.get_tur()<<std::endl;
+        std::cout<<Cam01.get_state()<<std::endl;
 
         while( window.pollEvent( event ) )
         {
+            if(event.type==sf::Event::KeyPressed)
+             {
+              if(event.key.code==sf::Keyboard::W)
+               {
+                Cam01.set_state(1);
+                walk_clock.restart();
+               }
+             }
+            if(event.type==sf::Event::KeyReleased)
+             {
+              if(event.key.code==sf::Keyboard::W)
+               {
+                Cam01.set_state(2);
+               }
+             }
             switch (event.type)
             {
             case sf::Event::Closed:
@@ -702,7 +725,7 @@ sf::RectangleShape player;
          {
          for(auto part : panel)
           {
-           window.draw(part.p_render(cam01, window.getSize()));
+           window.draw(part.p_render(Cam01, window.getSize()));
           }
          }
         window.display( );
