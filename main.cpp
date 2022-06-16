@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include<windows.h>
+
 
 float distance(sf::Vector2f P, float angle, sf::Vector2f _0)
  {
@@ -106,6 +108,7 @@ class Camera
       turn = turn_;
       fov = fov_;
       state = 0;
+      has_exited=false;
       CoM_y = position.y;
       Ani_y = 0;
       minicamera.setFillColor(sf::Color::Yellow);
@@ -129,6 +132,10 @@ class Camera
      {
       return state;
      };
+    bool get_exited()
+     {
+      return has_exited;
+     };
     void set_state(int nstate)
      {
       state = nstate;
@@ -137,7 +144,7 @@ class Camera
      {
       return minicamera;
      }
-    void move(const sf::Time &elapsed, const sf::Window &window, const sf::Time &elapsed_w, std::vector<sf::RectangleShape> walls)
+    void move(const sf::Time &elapsed, const sf::Window &window, const sf::Time &elapsed_w, std::vector<sf::RectangleShape> walls, std::vector<sf::RectangleShape> doors)
      {
 
       int offset = sf::Mouse::getPosition(window).x-window.getSize().x/2; //Turning the camera with the mouse movement
@@ -259,9 +266,29 @@ class Camera
           }
       }
 
+      for (auto &wall : doors)
+      {
+          sf::FloatRect playerBounds = minicamera.getGlobalBounds();
+          sf::FloatRect wallBounds = wall.getGlobalBounds();
+
+          nextPos1 = playerBounds;
+          nextPos1.left += velocity.x;
+          nextPos1.top -= velocity.z;
+
+          if (wallBounds.intersects(nextPos1))
+          {
+           if(1) //idk
+            {
+             has_exited=true;
+             std::cout<<"pp: "<<has_exited<<std::endl;
+            }
+          }
+      }
+
       position.x += velocity.x;
       position.y += velocity.y;
       position.z += velocity.z;
+
       minicamera.setPosition(sf::Vector2f(position.x+(scale/2)-(minicamera.getRadius()), -position.z+(scale/2)-(minicamera.getRadius())));
      }
 
@@ -270,13 +297,14 @@ class Camera
    float scale = 100;
    float turn;
    float fov;
+   bool has_exited;
    float CoM_y; //position y with disregrard for animation
    float Ani_y; //position y with regard only to animation
    int state; // state being a state of animation 0-standing 1-walking 2-stopping
    float movementSpeed = 50;
    sf::Vector3f velocity;
    sf::CircleShape minicamera;
-   sf::FloatRect nextPos;
+   sf::FloatRect nextPos, nextPos1;
 
  };
 
@@ -773,20 +801,28 @@ class Map
       return spawnpoint;
      }
 
-    std::vector<sf::RectangleShape> render2d(sf::Vector3f offset, float scale)
+    std::vector<sf::RectangleShape> render2d(sf::Vector3f offset, float scale, bool mode=0) //0 outputs walls, 1 outputs doors
      {
       std::vector<sf::RectangleShape> tiles;
       for(int i=0;i<Y;++i)
        {
         for(int j=0;j<X;++j)
          {
-          if(map[i*X+j]==1)
+          if(map[i*X+j]==1&&mode==0)
            {
             sf::RectangleShape tile;
             tile.setSize(sf::Vector2f(scale,scale));
             tile.setPosition(j*scale,i*scale);
             tile.setFillColor(sf::Color::Red);
             tiles.emplace_back(tile);
+           }
+          else if(map[i*X+j]==5&&mode==1)
+           {
+            sf::RectangleShape door;
+            door.setSize(sf::Vector2f(scale,scale));
+            door.setPosition(j*scale,i*scale);
+            door.setFillColor(sf::Color::Yellow);
+            tiles.emplace_back(door);
            }
          }
        }
@@ -903,34 +939,9 @@ void Oclusion(std::vector<std::vector<Object3d>> &v, int start, int end, Camera 
   }
 }
 
-
-class CustomRectangleShape : public sf::RectangleShape {
-public:
-    CustomRectangleShape(const sf::Vector2f &size, const sf::Vector2f &position) : sf::RectangleShape(size)
-    {
-        setPosition(position);
-
-    }
-
-bool isClicked(sf::Vector2i &mouse_position, sf::Vector2f &rec_position) const{
-
-        sf::FloatRect rectangle_bounds = getGlobalBounds();
-        float xrange = rectangle_bounds.width/2;
-        float yrange = rectangle_bounds.height/2;
-        if((mouse_position.x>= rec_position.x-xrange && mouse_position.x<= rec_position.x+xrange) &&
-                (mouse_position.y>= rec_position.y-yrange && mouse_position.y<= rec_position.y+yrange))
-        {
-            return true;
-        }
-
-               return false;
-    }
-
-};
-
 int main()
 {
-    bool b_flag = true;
+    bool b_flag = false,c_flag = true;
     sf::RenderWindow window( sf::VideoMode( 1200, 800 ), "Mazer" );
     window.setFramerateLimit(60);
     window.setMouseCursorVisible(false);
@@ -938,6 +949,7 @@ int main()
 
     sf::Clock clock;
     sf::Clock walk_clock;
+    int n=255,m=0,o=0;
 
     std::vector<int> map1 {1,1,1,1,1,1,1,1,1,1,
                            1,0,1,0,0,4,0,0,0,1,
@@ -972,43 +984,42 @@ int main()
                            1,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
     Map Map1(20,20,map2);
 
-
-    sf::Vector2f size(1200,800);
-    sf::Vector2f position(0,0);
-    CustomRectangleShape start_screen(size, position);
-    start_screen.setFillColor(sf::Color(10, 83, 11));
-
-    sf::Texture matrix;
-    if (!matrix.loadFromFile("matrix.png")) {
-            std::cerr << "Could not load texture" << std::endl;
-            return 1;
-        }
-    start_screen.setTexture(&matrix);
-     start_screen.setTextureRect(sf::IntRect(0,0,1200,800)); //left, top, width, height
-     matrix.setRepeated(true);
+    sf::RectangleShape start_screen(sf::Vector2f(window.getSize().x,window.getSize().y));
+    sf::RectangleShape end_screen(sf::Vector2f(window.getSize().x,window.getSize().y));
+    end_screen.setFillColor(sf::Color(255,255,255,0));
+    start_screen.setFillColor(sf::Color::Black);
 
     sf::Font font;
     font.loadFromFile("RobotoStatic-Regular.ttf");
-    sf::Text text("Click mouse to start the game!",font);
-    text.setCharacterSize(60);
+
+    sf::Text text("Press any button to start",font);
+    text.setCharacterSize(40);
     text.setStyle(sf::Text::Bold);
     text.setFillColor(sf::Color::White);
-    text.setPosition(200,600);
+    text.setPosition(350,700);
+
+    sf::Text text1("You have escaped the maze",font);
+    text1.setCharacterSize(40);
+    text1.setStyle(sf::Text::Bold);
+    text1.setFillColor(sf::Color(0,0,0,0));
+    text1.setPosition(340,280);
 
 
-    Object3d coobe(sf::LineStrip,16);
-    std::vector<sf::Vector3f> points {sf::Vector3f(200, 200, 200), sf::Vector3f(400, 200, 200), sf::Vector3f(400, 400, 200), sf::Vector3f(200, 400, 200),
-                                      sf::Vector3f(200, 200, 400), sf::Vector3f(400, 200, 400), sf::Vector3f(400, 400, 400), sf::Vector3f(200, 400, 400)};
-    coobe.cube(points);
+//    Object3d coobe(sf::LineStrip,16);
+//    std::vector<sf::Vector3f> points {sf::Vector3f(200, 200, 200), sf::Vector3f(400, 200, 200), sf::Vector3f(400, 400, 200), sf::Vector3f(200, 400, 200),
+//                                      sf::Vector3f(200, 200, 400), sf::Vector3f(400, 200, 400), sf::Vector3f(400, 400, 400), sf::Vector3f(200, 400, 400)};
+//    coobe.cube(points);
 
     sf::Vector2f origin (400,300);
 
     std::vector<std::vector<Object3d>> panels;
     std::vector<std::vector<Object3d>> doors;
     std::vector<sf::RectangleShape> tiles;
+    std::vector<sf::RectangleShape> door_tiles;
 
     panels = Map1.render(sf::Vector3f(0,0,0),100);
     tiles = Map1.render2d(sf::Vector3f(0,0,0),100);
+    door_tiles = Map1.render2d(sf::Vector3f(0,0,0),100,1);
 
 
 
@@ -1033,7 +1044,7 @@ int main()
         sf::Time elapsed = clock.restart();
         sf::Event event;
 
-        Cam01.move(elapsed, window, walk_clock.getElapsedTime(), tiles);
+        Cam01.move(elapsed, window, walk_clock.getElapsedTime(), tiles, door_tiles);
         Oclusion(panels,0,panels.size()-1, Cam01);
 
 //        std::cout<<Cam01.get_state()<<std::endl;
@@ -1042,6 +1053,7 @@ int main()
         {
             if(event.type==sf::Event::KeyPressed)
              {
+              b_flag = true;
               if(event.key.code==sf::Keyboard::W)
                {
                 Cam01.set_state(1);
@@ -1059,9 +1071,6 @@ int main()
                 Cam01.set_state(2);
                }
              }
-            if(sf::Mouse::isButtonPressed(sf::Mouse::Left) || sf::Mouse::isButtonPressed(sf::Mouse::Right)){
-                b_flag = false;
-            }
             switch (event.type)
              {
             case sf::Event::Closed:
@@ -1070,10 +1079,21 @@ int main()
              }
         }
 
+        if(b_flag==true&&c_flag==true)
+         {
+          start_screen.setFillColor(sf::Color(0,0,0,n));
+          text.setFillColor(sf::Color(255,255,255,n));
+          n-=2;
+         }
+        if(n<0)
+         {
+          c_flag=false;
+         }
 
 //        coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,elapsed.asSeconds(),3);
 
         window.clear( );
+
 
 //        window.draw(coobe.render());
 //        window.draw(coobe.p_render(cam01, window.getSize()));
@@ -1107,14 +1127,22 @@ int main()
 //          window.draw(tile);
 //         }
 //        window.draw(Cam01.get_mini());
-
-
-        if(b_flag){
+        if(c_flag){
             window.draw(start_screen);
             window.draw(text);
         }
-
-
+        if(Cam01.get_exited()==true)
+         {
+          window.draw(end_screen);
+          end_screen.setFillColor(sf::Color(255,255,255,m));
+          if(m<254){m+=2;}
+          else
+           {
+            window.draw(text1);
+            text1.setFillColor(sf::Color(0,0,0,o));
+            if(o<254){o+=2;}
+           }
+         }
 
         window.display( );
     }
