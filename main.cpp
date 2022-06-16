@@ -984,7 +984,7 @@ int main()
     text.setCharacterSize(60);
     text.setStyle(sf::Text::Bold);
     text.setFillColor(sf::Color::White);
-    text.setPosition(500,600);
+    text.setPosition(200,600);
 
     Object3d coobe(sf::LineStrip,16);
     std::vector<sf::Vector3f> points {sf::Vector3f(200, 200, 200), sf::Vector3f(400, 200, 200), sf::Vector3f(400, 400, 200), sf::Vector3f(200, 400, 200),
@@ -1049,7 +1049,7 @@ int main()
                 Cam01.set_state(2);
                }
              }
-            if(sf::Mouse::isButtonPressed(sf::Mouse::Left)){
+            if(sf::Mouse::isButtonPressed(sf::Mouse::Left) || sf::Mouse::isButtonPressed(sf::Mouse::Right)){
                 b_flag = false;
             }
             switch (event.type)
