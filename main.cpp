@@ -189,22 +189,22 @@ class Camera
         velocity.z -= movementSpeed*elapsed.asSeconds()*sin(turn*M_PI/180);
         velocity.x -= movementSpeed*elapsed.asSeconds()*cos(turn*M_PI/180);
        }
-      if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
-       {
-        CoM_y -= movementSpeed*elapsed.asSeconds();
-       }
-      if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
-       {
-        CoM_y += movementSpeed*elapsed.asSeconds();
-       }
-      if(sf::Keyboard::isKeyPressed(sf::Keyboard::O))
-       {
-        fov += movementSpeed/2*elapsed.asSeconds();
-       }
-      if(sf::Keyboard::isKeyPressed(sf::Keyboard::P))
-       {
-        fov -= movementSpeed/2*elapsed.asSeconds();
-       }
+//      if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+//       {
+//        CoM_y -= movementSpeed*elapsed.asSeconds();
+//       }
+//      if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
+//       {
+//        CoM_y += movementSpeed*elapsed.asSeconds();
+//       }
+//      if(sf::Keyboard::isKeyPressed(sf::Keyboard::O))
+//       {
+//        fov += movementSpeed/2*elapsed.asSeconds();
+//       }
+//      if(sf::Keyboard::isKeyPressed(sf::Keyboard::P))
+//       {
+//        fov -= movementSpeed/2*elapsed.asSeconds();
+//       }
       position.y = CoM_y + Ani_y;
 
 
@@ -468,7 +468,7 @@ class Object3d : sf::VertexArray
    std::vector<sf::Vector3f> Points;
  };
 
-std::vector<Object3d> construct_panel(sf::Vector2f point1, sf::Vector2f point2, sf::Vector2f height, int type, sf::Color color = sf::Color::Blue)
+std::vector<Object3d> construct_panel(sf::Vector2f point1, sf::Vector2f point2, sf::Vector2f height, int type, sf::Color color = sf::Color::Black)
  {
   std::vector<Object3d> panel;
   Object3d fill(sf::Quads, 4, color);
@@ -517,7 +517,7 @@ std::vector<Object3d> construct_panel(sf::Vector2f point1, sf::Vector2f point2, 
   return panel;
  };
 
-std::vector<std::vector<Object3d>> construct_door(sf::Vector2f point, bool orientation, float scale,sf::Color color = sf::Color::Blue)
+std::vector<std::vector<Object3d>> construct_door(sf::Vector2f point, bool orientation, float scale,sf::Color color = sf::Color::Black)
  {
   std::vector<std::vector<Object3d>> polygons;
 
@@ -1010,10 +1010,10 @@ int main()
 //                                      sf::Vector3f(200, 200, 400), sf::Vector3f(400, 200, 400), sf::Vector3f(400, 400, 400), sf::Vector3f(200, 400, 400)};
 //    coobe.cube(points);
 
-    sf::Vector2f origin (400,300);
+//    sf::Vector2f origin (400,300);
 
     std::vector<std::vector<Object3d>> panels;
-    std::vector<std::vector<Object3d>> doors;
+//    std::vector<std::vector<Object3d>> doors;
     std::vector<sf::RectangleShape> tiles;
     std::vector<sf::RectangleShape> door_tiles;
 
@@ -1021,23 +1021,10 @@ int main()
     tiles = Map1.render2d(sf::Vector3f(0,0,0),100);
     door_tiles = Map1.render2d(sf::Vector3f(0,0,0),100,1);
 
-
-
 //    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,1);
 //    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,2);
 
-    Camera Cam01(Map1.get_spawnpoint(),0, 30);
-
-//    sf::VertexArray graph(sf::LineStrip, 3);
-//    graph[0].position = sf::Vector2f(100,100);
-//    graph[1].position = sf::Vector2f(100,500);
-//    graph[2].position = sf::Vector2f(700,500);
-//    Object2d test1(sf::Vector2f(200,200), 0, 50);
-//    sf::CircleShape dot(5);
-//    sf::VertexArray ray(sf::Lines, 2);
-//    ray[0].color = sf::Color::Green;
-//    ray[1].color = sf::Color::Green;
-
+    Camera Cam01(Map1.get_spawnpoint(),0, 40);
 
     while ( window.isOpen( ) )
     {
@@ -1115,18 +1102,12 @@ int main()
           }
          }
 
-        for(auto polygon : doors)
-         {
-         for(auto part : polygon)
-          {
-           window.draw(part.p_render(Cam01, window.getSize()));
-          }
-         }
 //        for(auto tile : tiles)
 //         {
 //          window.draw(tile);
 //         }
 //        window.draw(Cam01.get_mini());
+
         if(c_flag){
             window.draw(start_screen);
             window.draw(text);
