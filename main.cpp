@@ -904,8 +904,33 @@ void Oclusion(std::vector<std::vector<Object3d>> &v, int start, int end, Camera 
 }
 
 
+class CustomRectangleShape : public sf::RectangleShape {
+public:
+    CustomRectangleShape(const sf::Vector2f &size, const sf::Vector2f &position) : sf::RectangleShape(size)
+    {
+        setPosition(position);
+
+    }
+
+bool isClicked(sf::Vector2i &mouse_position, sf::Vector2f &rec_position) const{
+
+        sf::FloatRect rectangle_bounds = getGlobalBounds();
+        float xrange = rectangle_bounds.width/2;
+        float yrange = rectangle_bounds.height/2;
+        if((mouse_position.x>= rec_position.x-xrange && mouse_position.x<= rec_position.x+xrange) &&
+                (mouse_position.y>= rec_position.y-yrange && mouse_position.y<= rec_position.y+yrange))
+        {
+            return true;
+        }
+
+               return false;
+    }
+
+};
+
 int main()
 {
+    bool b_flag = true;
     sf::RenderWindow window( sf::VideoMode( 1200, 800 ), "Mazer" );
     window.setFramerateLimit(60);
     window.setMouseCursorVisible(false);
@@ -948,7 +973,18 @@ int main()
     Map Map1(20,20,map2);
 
 
+    sf::Vector2f size(1200,800);
+    sf::Vector2f position(0,0);
+    CustomRectangleShape start_screen(size, position);
+    start_screen.setFillColor(sf::Color(10, 83, 11));
 
+    sf::Font font;
+    font.loadFromFile("RobotoStatic-Regular.ttf");
+    sf::Text text("Click mouse to start the game!",font);
+    text.setCharacterSize(60);
+    text.setStyle(sf::Text::Bold);
+    text.setFillColor(sf::Color::White);
+    text.setPosition(500,600);
 
     Object3d coobe(sf::LineStrip,16);
     std::vector<sf::Vector3f> points {sf::Vector3f(200, 200, 200), sf::Vector3f(400, 200, 200), sf::Vector3f(400, 400, 200), sf::Vector3f(200, 400, 200),
@@ -1013,6 +1049,9 @@ int main()
                 Cam01.set_state(2);
                }
              }
+            if(sf::Mouse::isButtonPressed(sf::Mouse::Left)){
+                b_flag = false;
+            }
             switch (event.type)
              {
             case sf::Event::Closed:
@@ -1034,6 +1073,10 @@ int main()
 //        window.draw(Pole.p_render(cam01, window.getSize()));
 //        window.draw(Panel0.p_render(cam01, window.getSize()));
 //        window.draw(Panel.p_render(cam01, window.getSize()));
+//        if(sf::Mouse::isButtonPressed(sf::Mouse::Left)){
+
+//        }
+//        window.draw(start_screen);
         for(auto panel : panels)
          {
          for(auto part : panel)
@@ -1054,6 +1097,14 @@ int main()
 //          window.draw(tile);
 //         }
 //        window.draw(Cam01.get_mini());
+
+
+        if(b_flag){
+            window.draw(start_screen);
+            window.draw(text);
+        }
+
+
 
         window.display( );
     }
