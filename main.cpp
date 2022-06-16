@@ -978,6 +978,15 @@ int main()
     CustomRectangleShape start_screen(size, position);
     start_screen.setFillColor(sf::Color(10, 83, 11));
 
+    sf::Texture matrix;
+    if (!matrix.loadFromFile("matrix.png")) {
+            std::cerr << "Could not load texture" << std::endl;
+            return 1;
+        }
+    start_screen.setTexture(&matrix);
+     start_screen.setTextureRect(sf::IntRect(0,0,1200,800)); //left, top, width, height
+     matrix.setRepeated(true);
+
     sf::Font font;
     font.loadFromFile("RobotoStatic-Regular.ttf");
     sf::Text text("Click mouse to start the game!",font);
@@ -985,6 +994,7 @@ int main()
     text.setStyle(sf::Text::Bold);
     text.setFillColor(sf::Color::White);
     text.setPosition(200,600);
+
 
     Object3d coobe(sf::LineStrip,16);
     std::vector<sf::Vector3f> points {sf::Vector3f(200, 200, 200), sf::Vector3f(400, 200, 200), sf::Vector3f(400, 400, 200), sf::Vector3f(200, 400, 200),
