@@ -489,6 +489,197 @@ std::vector<Object3d> construct_panel(sf::Vector2f point1, sf::Vector2f point2, 
   return panel;
  };
 
+std::vector<std::vector<Object3d>> construct_door(sf::Vector2f point, bool orientation, float scale,sf::Color color = sf::Color::Blue)
+ {
+  std::vector<std::vector<Object3d>> polygons;
+
+  std::vector<Object3d> polygon1; // wall
+  Object3d pol1f(sf::TriangleStrip, 8, color);
+   pol1f.set_position(0, sf::Vector3f((point.x*scale)+(scale*0.5), scale, point.y*scale));
+   pol1f.set_position(1, sf::Vector3f((point.x*scale)+(scale*0.3), scale, point.y*scale));
+   pol1f.set_position(2, sf::Vector3f((point.x*scale)+(scale*0.5), 0, point.y*scale));
+   pol1f.set_position(3, sf::Vector3f((point.x*scale)+(scale*0.3), 0.3*scale, point.y*scale));
+   pol1f.set_position(4, sf::Vector3f((point.x*scale)-(scale*0.5), 0, point.y*scale));
+   pol1f.set_position(5, sf::Vector3f((point.x*scale)-(scale*0.3), 0.3*scale, point.y*scale));
+   pol1f.set_position(6, sf::Vector3f((point.x*scale)-(scale*0.5), scale, point.y*scale));
+   pol1f.set_position(7, sf::Vector3f((point.x*scale)-(scale*0.3), scale, point.y*scale));
+  polygon1.emplace_back(pol1f);
+  Object3d pol1b(sf::LineStrip, 9);
+  pol1b.set_position(0, sf::Vector3f((point.x*scale)+(scale*0.5), 0, point.y*scale));
+  pol1b.set_position(1, sf::Vector3f((point.x*scale)+(scale*0.5), scale, point.y*scale));
+  pol1b.set_position(2, sf::Vector3f((point.x*scale)+(scale*0.3), scale, point.y*scale));
+  pol1b.set_position(3, sf::Vector3f((point.x*scale)+(scale*0.3), 0.3*scale, point.y*scale));
+  pol1b.set_position(4, sf::Vector3f((point.x*scale)-(scale*0.3), 0.3*scale, point.y*scale));
+  pol1b.set_position(5, sf::Vector3f((point.x*scale)-(scale*0.3), scale, point.y*scale));
+  pol1b.set_position(6, sf::Vector3f((point.x*scale)-(scale*0.5), scale, point.y*scale));
+  pol1b.set_position(7, sf::Vector3f((point.x*scale)-(scale*0.5), 0, point.y*scale));
+  pol1b.set_position(8, sf::Vector3f((point.x*scale)+(scale*0.5), 0, point.y*scale));
+  polygon1.emplace_back(pol1b);
+  polygons.emplace_back(polygon1);
+
+  std::vector<Object3d> polygon2; //front doorframe
+  Object3d pol2f(sf::TriangleStrip, 8, color);
+   pol2f.set_position(0, sf::Vector3f((point.x*scale)+(scale*0.3), scale, point.y*scale-0.05*scale));
+   pol2f.set_position(1, sf::Vector3f((point.x*scale)+(scale*0.2), scale, point.y*scale-0.05*scale));
+   pol2f.set_position(2, sf::Vector3f((point.x*scale)+(scale*0.3), 0.3*scale, point.y*scale-0.05*scale));
+   pol2f.set_position(3, sf::Vector3f((point.x*scale)+(scale*0.2), 0.4*scale, point.y*scale-0.05*scale));
+   pol2f.set_position(4, sf::Vector3f((point.x*scale)-(scale*0.3), 0.3*scale, point.y*scale-0.05*scale));
+   pol2f.set_position(5, sf::Vector3f((point.x*scale)-(scale*0.2), 0.4*scale, point.y*scale-0.05*scale));
+   pol2f.set_position(6, sf::Vector3f((point.x*scale)-(scale*0.3), scale, point.y*scale-0.05*scale));
+   pol2f.set_position(7, sf::Vector3f((point.x*scale)-(scale*0.2), scale, point.y*scale-0.05*scale));
+  polygon2.emplace_back(pol2f);
+  Object3d pol2b(sf::LineStrip, 9);
+  pol2b.set_position(0, sf::Vector3f((point.x*scale)+(scale*0.3), 0.3*scale, point.y*scale-0.05*scale));
+  pol2b.set_position(1, sf::Vector3f((point.x*scale)+(scale*0.3), scale, point.y*scale-0.05*scale));
+  pol2b.set_position(2, sf::Vector3f((point.x*scale)+(scale*0.2), scale, point.y*scale-0.05*scale));
+  pol2b.set_position(3, sf::Vector3f((point.x*scale)+(scale*0.2), 0.4*scale, point.y*scale-0.05*scale));
+  pol2b.set_position(4, sf::Vector3f((point.x*scale)-(scale*0.2), 0.4*scale, point.y*scale-0.05*scale));
+  pol2b.set_position(5, sf::Vector3f((point.x*scale)-(scale*0.2), scale, point.y*scale-0.05*scale));
+  pol2b.set_position(6, sf::Vector3f((point.x*scale)-(scale*0.3), scale, point.y*scale-0.05*scale));
+  pol2b.set_position(7, sf::Vector3f((point.x*scale)-(scale*0.3), 0.3*scale, point.y*scale-0.05*scale));
+  pol2b.set_position(8, sf::Vector3f((point.x*scale)+(scale*0.3), 0.3*scale, point.y*scale-0.05*scale));
+  polygon2.emplace_back(pol2b);
+  polygons.emplace_back(polygon2);
+
+  std::vector<Object3d> polygon3; //back doorframe
+  Object3d pol3f(sf::TriangleStrip, 8, color);
+   pol3f.set_position(0, sf::Vector3f((point.x*scale)+(scale*0.3), scale, point.y*scale+0.05*scale));
+   pol3f.set_position(1, sf::Vector3f((point.x*scale)+(scale*0.2), scale, point.y*scale+0.05*scale));
+   pol3f.set_position(2, sf::Vector3f((point.x*scale)+(scale*0.3), 0.3*scale, point.y*scale+0.05*scale));
+   pol3f.set_position(3, sf::Vector3f((point.x*scale)+(scale*0.2), 0.4*scale, point.y*scale+0.05*scale));
+   pol3f.set_position(4, sf::Vector3f((point.x*scale)-(scale*0.3), 0.3*scale, point.y*scale+0.05*scale));
+   pol3f.set_position(5, sf::Vector3f((point.x*scale)-(scale*0.2), 0.4*scale, point.y*scale+0.05*scale));
+   pol3f.set_position(6, sf::Vector3f((point.x*scale)-(scale*0.3), scale, point.y*scale+0.05*scale));
+   pol3f.set_position(7, sf::Vector3f((point.x*scale)-(scale*0.2), scale, point.y*scale+0.05*scale));
+  polygon3.emplace_back(pol3f);
+  Object3d pol3b(sf::LineStrip, 9);
+  pol3b.set_position(0, sf::Vector3f((point.x*scale)+(scale*0.3), 0.3*scale, point.y*scale+0.05*scale));
+  pol3b.set_position(1, sf::Vector3f((point.x*scale)+(scale*0.3), scale, point.y*scale+0.05*scale));
+  pol3b.set_position(2, sf::Vector3f((point.x*scale)+(scale*0.2), scale, point.y*scale+0.05*scale));
+  pol3b.set_position(3, sf::Vector3f((point.x*scale)+(scale*0.2), 0.4*scale, point.y*scale+0.05*scale));
+  pol3b.set_position(4, sf::Vector3f((point.x*scale)-(scale*0.2), 0.4*scale, point.y*scale+0.05*scale));
+  pol3b.set_position(5, sf::Vector3f((point.x*scale)-(scale*0.2), scale, point.y*scale+0.05*scale));
+  pol3b.set_position(6, sf::Vector3f((point.x*scale)-(scale*0.3), scale, point.y*scale+0.05*scale));
+  pol3b.set_position(7, sf::Vector3f((point.x*scale)-(scale*0.3), 0.3*scale, point.y*scale+0.05*scale));
+  pol3b.set_position(8, sf::Vector3f((point.x*scale)+(scale*0.3), 0.3*scale, point.y*scale+0.05*scale));
+  polygon3.emplace_back(pol3b);
+  polygons.emplace_back(polygon3);
+
+  std::vector<Object3d> polygon4; //right-front doorframe
+  Object3d pol4f(sf::Quads, 4, color);
+   pol4f.set_position(0, sf::Vector3f((point.x*scale)+(scale*0.3), scale, point.y*scale));
+   pol4f.set_position(1, sf::Vector3f((point.x*scale)+(scale*0.3), scale, point.y*scale+0.05*scale));
+   pol4f.set_position(2, sf::Vector3f((point.x*scale)+(scale*0.3), 0.3*scale, point.y*scale+0.05*scale));
+   pol4f.set_position(3, sf::Vector3f((point.x*scale)+(scale*0.3), 0.3*scale, point.y*scale));
+  polygon4.emplace_back(pol4f);
+  Object3d pol4b(sf::LineStrip, 5);
+  pol4b.set_position(0, sf::Vector3f((point.x*scale)+(scale*0.3), scale, point.y*scale));
+  pol4b.set_position(1, sf::Vector3f((point.x*scale)+(scale*0.3), scale, point.y*scale+0.05*scale));
+  pol4b.set_position(2, sf::Vector3f((point.x*scale)+(scale*0.3), 0.3*scale, point.y*scale+0.05*scale));
+  pol4b.set_position(3, sf::Vector3f((point.x*scale)+(scale*0.3), 0.3*scale, point.y*scale));
+  pol4b.set_position(4, sf::Vector3f((point.x*scale)+(scale*0.3), scale, point.y*scale));
+  polygon4.emplace_back(pol4b);
+  polygons.emplace_back(polygon4);
+
+  std::vector<Object3d> polygon5; //right-back doorframe
+  Object3d pol5f(sf::Quads, 4, color);
+   pol5f.set_position(0, sf::Vector3f((point.x*scale)+(scale*0.3), scale, point.y*scale));
+   pol5f.set_position(1, sf::Vector3f((point.x*scale)+(scale*0.3), scale, point.y*scale-0.05*scale));
+   pol5f.set_position(2, sf::Vector3f((point.x*scale)+(scale*0.3), 0.3*scale, point.y*scale-0.05*scale));
+   pol5f.set_position(3, sf::Vector3f((point.x*scale)+(scale*0.3), 0.3*scale, point.y*scale));
+  polygon5.emplace_back(pol5f);
+  Object3d pol5b(sf::LineStrip, 5);
+  pol5b.set_position(0, sf::Vector3f((point.x*scale)+(scale*0.3), scale, point.y*scale));
+  pol5b.set_position(1, sf::Vector3f((point.x*scale)+(scale*0.3), scale, point.y*scale-0.05*scale));
+  pol5b.set_position(2, sf::Vector3f((point.x*scale)+(scale*0.3), 0.3*scale, point.y*scale-0.05*scale));
+  pol5b.set_position(3, sf::Vector3f((point.x*scale)+(scale*0.3), 0.3*scale, point.y*scale));
+  pol5b.set_position(4, sf::Vector3f((point.x*scale)+(scale*0.3), scale, point.y*scale));
+  polygon5.emplace_back(pol5b);
+  polygons.emplace_back(polygon5);
+
+  std::vector<Object3d> polygon6; //left-front doorframe
+  Object3d pol6f(sf::Quads, 4, color);
+   pol6f.set_position(0, sf::Vector3f((point.x*scale)-(scale*0.3), scale, point.y*scale));
+   pol6f.set_position(1, sf::Vector3f((point.x*scale)-(scale*0.3), scale, point.y*scale+0.05*scale));
+   pol6f.set_position(2, sf::Vector3f((point.x*scale)-(scale*0.3), 0.3*scale, point.y*scale+0.05*scale));
+   pol6f.set_position(3, sf::Vector3f((point.x*scale)-(scale*0.3), 0.3*scale, point.y*scale));
+  polygon6.emplace_back(pol6f);
+  Object3d pol6b(sf::LineStrip, 5);
+  pol6b.set_position(0, sf::Vector3f((point.x*scale)-(scale*0.3), scale, point.y*scale));
+  pol6b.set_position(1, sf::Vector3f((point.x*scale)-(scale*0.3), scale, point.y*scale+0.05*scale));
+  pol6b.set_position(2, sf::Vector3f((point.x*scale)-(scale*0.3), 0.3*scale, point.y*scale+0.05*scale));
+  pol6b.set_position(3, sf::Vector3f((point.x*scale)-(scale*0.3), 0.3*scale, point.y*scale));
+  pol6b.set_position(4, sf::Vector3f((point.x*scale)-(scale*0.3), scale, point.y*scale));
+  polygon6.emplace_back(pol6b);
+  polygons.emplace_back(polygon6);
+
+  std::vector<Object3d> polygon7; //left-back doorframe
+  Object3d pol7f(sf::Quads, 4, color);
+   pol7f.set_position(0, sf::Vector3f((point.x*scale)-(scale*0.3), scale, point.y*scale));
+   pol7f.set_position(1, sf::Vector3f((point.x*scale)-(scale*0.3), scale, point.y*scale-0.05*scale));
+   pol7f.set_position(2, sf::Vector3f((point.x*scale)-(scale*0.3), 0.3*scale, point.y*scale-0.05*scale));
+   pol7f.set_position(3, sf::Vector3f((point.x*scale)-(scale*0.3), 0.3*scale, point.y*scale));
+  polygon7.emplace_back(pol7f);
+  Object3d pol7b(sf::LineStrip, 5);
+  pol7b.set_position(0, sf::Vector3f((point.x*scale)-(scale*0.3), scale, point.y*scale));
+  pol7b.set_position(1, sf::Vector3f((point.x*scale)-(scale*0.3), scale, point.y*scale-0.05*scale));
+  pol7b.set_position(2, sf::Vector3f((point.x*scale)-(scale*0.3), 0.3*scale, point.y*scale-0.05*scale));
+  pol7b.set_position(3, sf::Vector3f((point.x*scale)-(scale*0.3), 0.3*scale, point.y*scale));
+  pol7b.set_position(4, sf::Vector3f((point.x*scale)-(scale*0.3), scale, point.y*scale));
+  polygon7.emplace_back(pol7b);
+  polygons.emplace_back(polygon7);
+
+  std::vector<Object3d> polygon8; //right doorframe inner
+  Object3d pol8f(sf::Quads, 4, color);
+   pol8f.set_position(0, sf::Vector3f((point.x*scale)+(scale*0.2), scale, point.y*scale-0.05*scale));
+   pol8f.set_position(1, sf::Vector3f((point.x*scale)+(scale*0.2), scale, point.y*scale+0.05*scale));
+   pol8f.set_position(2, sf::Vector3f((point.x*scale)+(scale*0.2), 0.4*scale, point.y*scale+0.05*scale));
+   pol8f.set_position(3, sf::Vector3f((point.x*scale)+(scale*0.2), 0.4*scale, point.y*scale-0.05*scale));
+  polygon8.emplace_back(pol8f);
+  Object3d pol8b(sf::LineStrip, 5);
+  pol8b.set_position(0, sf::Vector3f((point.x*scale)+(scale*0.2), scale, point.y*scale-0.05*scale));
+  pol8b.set_position(1, sf::Vector3f((point.x*scale)+(scale*0.2), scale, point.y*scale+0.05*scale));
+  pol8b.set_position(2, sf::Vector3f((point.x*scale)+(scale*0.2), 0.4*scale, point.y*scale+0.05*scale));
+  pol8b.set_position(3, sf::Vector3f((point.x*scale)+(scale*0.2), 0.4*scale, point.y*scale-0.05*scale));
+  pol8b.set_position(4, sf::Vector3f((point.x*scale)+(scale*0.2), scale, point.y*scale-0.05*scale));
+  polygon4.emplace_back(pol8b);
+  polygons.emplace_back(polygon8);
+
+  std::vector<Object3d> polygon9; //left doorframe inner
+  Object3d pol9f(sf::Quads, 4, color);
+   pol9f.set_position(0, sf::Vector3f((point.x*scale)-(scale*0.2), scale, point.y*scale+0.05*scale));
+   pol9f.set_position(1, sf::Vector3f((point.x*scale)-(scale*0.2), scale, point.y*scale-0.05*scale));
+   pol9f.set_position(2, sf::Vector3f((point.x*scale)-(scale*0.2), 0.4*scale, point.y*scale-0.05*scale));
+   pol9f.set_position(3, sf::Vector3f((point.x*scale)-(scale*0.2), 0.4*scale, point.y*scale+0.05*scale));
+  polygon9.emplace_back(pol9f);
+  Object3d pol9b(sf::LineStrip, 5);
+  pol9b.set_position(0, sf::Vector3f((point.x*scale)-(scale*0.2), scale, point.y*scale+0.05*scale));
+  pol9b.set_position(1, sf::Vector3f((point.x*scale)-(scale*0.2), scale, point.y*scale-0.05*scale));
+  pol9b.set_position(2, sf::Vector3f((point.x*scale)-(scale*0.2), 0.4*scale, point.y*scale-0.05*scale));
+  pol9b.set_position(3, sf::Vector3f((point.x*scale)-(scale*0.2), 0.4*scale, point.y*scale-0.05*scale));
+  pol9b.set_position(4, sf::Vector3f((point.x*scale)-(scale*0.2), scale, point.y*scale-0.05*scale));
+  polygon9.emplace_back(pol9b);
+  polygons.emplace_back(polygon9);
+
+  std::vector<Object3d> polygon10; //top doorframe inner
+  Object3d pol10f(sf::Quads, 4, color);
+   pol10f.set_position(0, sf::Vector3f((point.x*scale)-(scale*0.2), 0.4*scale, point.y*scale+0.05*scale));
+   pol10f.set_position(1, sf::Vector3f((point.x*scale)-(scale*0.2), 0.4*scale, point.y*scale-0.05*scale));
+   pol10f.set_position(2, sf::Vector3f((point.x*scale)+(scale*0.2), 0.4*scale, point.y*scale-0.05*scale));
+   pol10f.set_position(3, sf::Vector3f((point.x*scale)+(scale*0.2), 0.4*scale, point.y*scale+0.05*scale));
+  polygon10.emplace_back(pol10f);
+  Object3d pol10b(sf::LineStrip, 5);
+  pol10b.set_position(0, sf::Vector3f((point.x*scale)-(scale*0.2), 0.4*scale, point.y*scale+0.05*scale));
+  pol10b.set_position(1, sf::Vector3f((point.x*scale)-(scale*0.2), 0.4*scale, point.y*scale-0.05*scale));
+  pol10b.set_position(2, sf::Vector3f((point.x*scale)+(scale*0.2), 0.4*scale, point.y*scale-0.05*scale));
+  pol10b.set_position(3, sf::Vector3f((point.x*scale)+(scale*0.2), 0.4*scale, point.y*scale+0.05*scale));
+  pol10b.set_position(4, sf::Vector3f((point.x*scale)-(scale*0.2), 0.4*scale, point.y*scale+0.05*scale));
+  polygon10.emplace_back(pol10b);
+  polygons.emplace_back(polygon10);
+
+  return polygons;
+ }
+
 class Map
  {
   public:
@@ -538,6 +729,10 @@ class Map
              {
               cv_map[i*cX+j] = 2;
              }
+            if((cv_map[i*cX+j-cX]==0 && cv_map[i*cX+j+cX] == 5)||(cv_map[i*cX+j+cX]==0 && cv_map[i*cX+j-cX] == 5))
+            {
+             cv_map[i*cX+j] = 6;
+            }
            }
          }
         else if(i%2 == 0)
@@ -659,6 +854,14 @@ class Map
            {
             spawnpoint = sf::Vector3f((j*scale/2), offset.y+(3*scale/4), -(i*scale/2));
            }
+          if(cv_map[i*cX+j] == 6)
+           {
+            auto placeholder = construct_door(sf::Vector2f(j/2,(-i/2)-0.5),1,scale);
+            for(auto piece : placeholder)
+             {
+              Map.emplace_back(piece);
+             }
+           }
          }
        }
       return Map;
@@ -720,7 +923,7 @@ int main()
                            1,1,1,1,1,0,0,0,0,1,
                            1,0,0,0,1,1,0,1,0,1,
                            1,0,1,0,0,0,0,1,0,1,
-                           1,1,1,1,1,1,1,1,1,1};
+                           1,5,1,1,1,1,1,1,1,1};
 
     std::vector<int> map2 {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
                            1,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,1,1,0,1,
@@ -741,7 +944,7 @@ int main()
                            1,0,0,0,0,0,4,0,0,0,0,1,0,0,1,1,1,0,0,1,
                            1,0,1,0,1,1,0,1,0,1,0,0,0,1,1,0,1,0,1,1,
                            1,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,1,0,0,1,
-                           1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+                           1,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
     Map Map1(20,20,map2);
 
 
@@ -755,7 +958,9 @@ int main()
     sf::Vector2f origin (400,300);
 
     std::vector<std::vector<Object3d>> panels;
+    std::vector<std::vector<Object3d>> doors;
     std::vector<sf::RectangleShape> tiles;
+
     panels = Map1.render(sf::Vector3f(0,0,0),100);
     tiles = Map1.render2d(sf::Vector3f(0,0,0),100);
 
@@ -765,7 +970,6 @@ int main()
 //    coobe.rotate(sf::Vector3f(300,300,300),M_PI/4,1,2);
 
     Camera Cam01(Map1.get_spawnpoint(),0, 30);
-
 
 //    sf::VertexArray graph(sf::LineStrip, 3);
 //    graph[0].position = sf::Vector2f(100,100);
@@ -783,7 +987,6 @@ int main()
         sf::Time elapsed = clock.restart();
         sf::Event event;
 
-//        Colission(Cam01.get_mini(), tiles, sf::Vector2f(100,100));
         Cam01.move(elapsed, window, walk_clock.getElapsedTime(), tiles);
         Oclusion(panels,0,panels.size()-1, Cam01);
 
@@ -834,6 +1037,14 @@ int main()
         for(auto panel : panels)
          {
          for(auto part : panel)
+          {
+           window.draw(part.p_render(Cam01, window.getSize()));
+          }
+         }
+
+        for(auto polygon : doors)
+         {
+         for(auto part : polygon)
           {
            window.draw(part.p_render(Cam01, window.getSize()));
           }
