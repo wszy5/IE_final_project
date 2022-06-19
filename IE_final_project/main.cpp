@@ -280,7 +280,7 @@ class Camera
            if(1) //idk
             {
              has_exited=true;
-             std::cout<<"pp: "<<has_exited<<std::endl;
+//             std::cout<<"pp: "<<has_exited<<std::endl;
             }
           }
       }
@@ -786,14 +786,14 @@ class Map
          }
        }
 
-      for(int i=0;i<cY;++i) // just a printer function
-       {
-        for(int j=0;j<cX;++j)
-         {
-          std::cout<<cv_map[i*cY+j]<<" ";
-         }
-        std::cout<<std::endl;
-       }
+//      for(int i=0;i<cY;++i) // just a printer function
+//       {
+//        for(int j=0;j<cX;++j)
+//         {
+//          std::cout<<cv_map[i*cY+j]<<" ";
+//         }
+//        std::cout<<std::endl;
+//       }
      };
 
     sf::Vector3f get_spawnpoint()
@@ -967,7 +967,7 @@ int main()
                            1,1,1,0,1,0,0,0,1,0,1,1,0,0,0,1,1,0,0,1,
                            1,0,0,0,1,1,0,0,0,0,1,0,0,1,0,0,1,0,1,1,
                            1,0,1,0,0,0,0,1,0,1,1,0,1,1,1,0,0,0,0,1,
-                           1,0,1,0,1,1,1,0,0,0,0,0,0,0,1,0,1,1,0,1,
+                           1,0,1,0,1,1,1,1,0,0,0,0,0,0,1,0,1,1,0,1,
                            1,1,0,0,0,1,0,0,0,1,0,1,1,0,0,0,1,0,0,1,
                            1,0,0,1,0,1,0,1,0,1,1,1,0,0,1,0,1,0,1,1,
                            1,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,1,
@@ -979,9 +979,30 @@ int main()
                            1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,
                            1,1,1,0,1,0,0,1,0,1,1,1,1,0,0,0,1,1,0,1,
                            1,0,0,0,0,0,4,0,0,0,0,1,0,0,1,1,1,0,0,1,
-                           1,0,1,0,1,1,0,1,0,1,0,0,0,1,1,0,1,0,1,1,
+                           1,0,1,0,1,1,0,1,1,1,0,0,0,1,1,0,1,0,1,1,
                            1,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,1,0,0,1,
                            1,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+
+    std::vector<int> map3 {1,1,1,1,1,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+                           1,0,0,0,1,0,1,0,0,0,1,0,0,1,0,0,0,0,0,1,
+                           1,0,1,0,1,0,0,0,1,0,0,0,0,1,0,1,1,1,0,1,
+                           1,0,1,1,1,1,0,1,1,1,0,0,0,1,0,1,0,0,0,1,
+                           1,0,1,0,0,0,0,0,0,1,0,1,0,0,0,1,1,1,1,1,
+                           1,0,0,0,1,1,1,1,0,1,1,1,0,1,0,0,0,1,0,1,
+                           1,1,1,0,0,0,1,0,0,0,0,1,0,1,1,1,0,0,0,1,
+                           1,0,1,1,1,0,1,1,0,1,0,1,0,1,0,0,0,1,1,1,
+                           1,0,0,0,1,0,0,0,0,1,0,1,1,1,1,1,0,1,0,1,
+                           1,0,1,0,1,1,1,1,0,1,0,1,0,0,0,1,1,1,0,1,
+                           1,0,1,0,1,0,0,0,0,1,0,0,0,1,0,0,0,0,0,1,
+                           1,0,1,1,1,0,1,1,0,1,1,1,1,1,1,1,0,1,1,1,
+                           1,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1,0,1,
+                           1,0,1,1,1,0,1,0,1,0,1,0,1,1,1,0,1,1,0,1,
+                           1,0,1,0,1,0,0,0,1,1,1,0,0,0,1,0,1,0,0,1,
+                           1,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,1,0,1,
+                           1,0,0,0,1,0,1,1,1,0,1,0,1,0,1,0,0,1,0,1,
+                           1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,0,1,0,1,
+                           1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,
+                           1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
     Map Map1(20,20,map2);
 
     sf::RectangleShape start_screen(sf::Vector2f(window.getSize().x,window.getSize().y));
@@ -991,12 +1012,20 @@ int main()
 
     sf::Font font;
     font.loadFromFile("RobotoStatic-Regular.ttf");
+    sf::Font font1;
+    font1.loadFromFile("ChargeVector.ttf");
 
     sf::Text text("Press any button to start",font);
     text.setCharacterSize(40);
     text.setStyle(sf::Text::Bold);
     text.setFillColor(sf::Color::White);
     text.setPosition(350,700);
+
+    sf::Text text2("Mazer",font1);
+    text2.setCharacterSize(150);
+    text2.setStyle(sf::Text::Bold);
+    text2.setFillColor(sf::Color::White);
+    text2.setPosition(330,180);
 
     sf::Text text1("You have escaped the maze",font);
     text1.setCharacterSize(40);
@@ -1070,6 +1099,7 @@ int main()
          {
           start_screen.setFillColor(sf::Color(0,0,0,n));
           text.setFillColor(sf::Color(255,255,255,n));
+          text2.setFillColor(sf::Color(255,255,255,n));
           n-=2;
          }
         if(n<0)
@@ -1111,6 +1141,7 @@ int main()
         if(c_flag){
             window.draw(start_screen);
             window.draw(text);
+            window.draw(text2);
         }
         if(Cam01.get_exited()==true)
          {
